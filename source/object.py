@@ -1,4 +1,5 @@
 import numpy as np
+import config
 
 class Object:
     def __init__(self):
@@ -17,7 +18,7 @@ class Object:
 
     def renderPosition(self,ref):
         self.renderpos = self.pos - ref
-        self.renderpos += np.array([300,300])
+        self.renderpos += np.array([config.screen_width/2,config.screen_height/2])
 
     def unit(self, x):
         return x / np.linalg.norm(x)

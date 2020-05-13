@@ -5,18 +5,18 @@ class Particle(object.Object):
     def __init__(self,pos):
         object.Object.__init__(self)
         self.pos = np.array(pos)
-
+        self.size = 1
 
 class ParticleSystem:
     def __init__(self):
         self.particles = []
         self.particle_release_time = 0
-        self.particle_limits = 100
+        self.particle_limits = 50
 
     def add_particle(self,pos):
         self.particle_release_time += 1
-        if self.particle_release_time > 10:
-            print(self.particle_release_time)
+        if self.particle_release_time > 30:
+
             self.particles.append(Particle(pos))
             self.particle_release_time = 0
 
@@ -26,6 +26,5 @@ class ParticleSystem:
     def renderPosition(self, ref):
         for p in self.particles:
             p.renderPosition(ref)
-
 
 
