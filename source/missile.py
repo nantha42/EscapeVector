@@ -1,10 +1,13 @@
 import object
-import numpy as np
+
 import particle
 import pygame as py
 import config
+import math
+import random
 
-class Missile(py.sprite.Sprite,object.Object):
+
+class Missile(py.sprite.Sprite, object.Object):
 
     def __init__(self):
         object.Object.__init__(self)
@@ -14,26 +17,27 @@ class Missile(py.sprite.Sprite,object.Object):
         self.particle_system = particle.ParticleSystem()
         self.permimage = py.image.load("../images/homissile.png")
         self.image = py.image.load("../images/homissile.png")
-        self.rect =self.image.get_rect()
-        self.rect.x = np.random.randint(1000,2000)
-        self.rect.y = np.random.randint(1000,2000)
-        self.fuel = config.missile_fuel
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randint(1000, 2000)
+        self.rect.y = random.randint(1000, 2000)
+        self.fuel = random.randint(config.missile_fuel-50,config.missile_fuel)
         self.killit = False
 
-    def renderPosition(self,ref):
+
+    def renderPosition(self, ref):
         super().renderPosition(ref)
         self.particle_system.renderPosition(ref)
 
     def rot_center(self):
         # self.permimage = py.transform.scale(self.permimage, (self.width, self.height))
         orig_rect = self.permimage.get_rect()
-        rad = np.arccos(np.dot(self.unit(self.v),np.array([1,0])))
-        rad2 = np.arccos(np.dot(self.unit(self.v), np.array([0, 1])))
-        self.angle = np.rad2deg(rad)
-        self.angle2 =  np.rad2deg(rad2)
+        rad = math.acos(self.dot(self.unit(self.v), [1, 0]))
+        rad2 = math.acos(self.dot(self.unit(self.v), [0, 1]))
+        self.angle = math.degrees(rad)
+        self.angle2 = math.degrees(rad2)
 
-        if self.angle2 >=90:
-            rot_image = py.transform.rotate(self.permimage,-270 - (180-self.angle))
+        if self.angle2 >= 90:
+            rot_image = py.transform.rotate(self.permimage, -270 - (180 - self.angle))
         else:
             rot_image = py.transform.rotate(self.permimage, -self.angle - 90)
         rot_rect = orig_rect.copy()
@@ -44,30 +48,29 @@ class Missile(py.sprite.Sprite,object.Object):
         # self.rect.centerx = 300
         # self.rect.centery = 300
 
-
-    def update(self,playerpos,speed):
+    def update(self, playerpos, speed):
 
         if self.killit == False:
-            rot_dir = playerpos - self.pos
-            unit_dir = rot_dir/np.linalg.norm(rot_dir)
-            ratio = (speed/config.normal_speed)
-            if(config.missile_speed*ratio <50):
+            rot_dir = self.sub_vec(playerpos,self.pos)
+
+            ratio = (speed / config.normal_speed)
+            if (config.missile_speed * ratio < 50):
                 self.speed = 80
             else:
-                self.speed = config.missile_speed*ratio
-            v_turn = self.unit(rot_dir - self.v)
-            self.v = self.v*self.speed + v_turn*self.turn_speed
+                self.speed = config.missile_speed * ratio
+            v_turn = self.unit(self.sub_vec(rot_dir ,self.v))
+            self.v = self.add_vec(self.multiply(self.speed,self.v), self.multiply(self.turn_speed,v_turn))
             self.fuel -= 0.5
         else:
 
             self.kill()
 
             for i in self.particle_system.particles:
-                if(i.size >=config.particle_expansion_size):
+                if (i.size >= config.particle_expansion_size):
                     self.particle_system.particles.remove(i)
 
         self.v = self.unit(self.v)
-        self.pos += self.v*self.speed*config.dt
+        self.pos = self.add_vec(self.pos,self.multiply(self.speed*config.dt,self.v))
         if not self.killit:
             self.particle_system.add_particle(self.pos)
         self.rot_center()
@@ -75,5 +78,5 @@ class Missile(py.sprite.Sprite,object.Object):
         self.rect.centerx = self.renderpos[0]
         self.rect.centery = self.renderpos[1]
 
-
-
+        # self.rect.x = self.renderpos[0]
+        # self.rect.y = self.renderpos[1]

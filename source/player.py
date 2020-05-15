@@ -1,19 +1,21 @@
-import numpy as np
+
 from object import Object
 import particle
 import config
 import pygame as py
 import spritesheet
+import math
 
 class Player(py.sprite.Sprite,Object):
     def __init__(self):
         Object.__init__(self)
+        py.sprite.Sprite.__init__(self)
         self.speed= config.normal_speed
         self.turn_speed = 2
         self.particle_system = particle.ParticleSystem()
         self.imgs = []
-
-
+        self.health = 100
+        self.live = True
         for i in range(6):
             self.imgs.append(py.image.load("../images/top"+str(i+1)+".png"))
 
@@ -51,31 +53,32 @@ class Player(py.sprite.Sprite,Object):
 
     def throttleUp(self):
         if self.speed < config.normal_speed:
-            self.speed+=1
+            self.speed+=3
 
     def throttleDown(self):
         if self.speed > config.normal_speed/3:
-            self.speed-= 1
+            self.speed-= 3
 
-    def update(self,mousepos):
+
+    def update(self):
 
         # dir = np.array(mousepos) - np.array((300,300))
         # dir = self.unit(dir)
 
-        r = np.deg2rad(self.angle)
-        dir = np.array([np.cos(r),np.sin(r)])
+        r = math.radians(self.angle)
+        dir = [math.cos(r),math.sin(r)]
 
-        self.v = self.v * self.speed + dir*self.turn_speed*100
+        self.v = self.add_vec(self.multiply(self.speed, self.v), self.multiply(self.turn_speed * 100, dir))
         self.v = self.unit(self.v)
-        self.pos += self.v*self.speed * config.dt
+        self.pos = self.add_vec(self.pos,self.multiply(self.speed*config.dt,self.v))
 
-        r = np.deg2rad(-self.angle-180+90)
-        r1 = np.deg2rad(-self.angle - 180 - 90)
+        r = math.radians(-self.angle-180+90)
+        r1 = math.radians(-self.angle - 180 - 90)
 
-        p1 = np.array([np.cos(r),np.sin(r)])*5
-        p2 = np.array([np.cos(r1), np.sin(r1)])*5
-        self.particle_system.add_particle(self.pos+p1)
-        self.particle_system.add_particle(self.pos + p2)
+        p1 = self.multiply(5,[math.cos(r),math.sin(r)])
+        p2 = self.multiply(5,[math.cos(r1), math.sin(r1)])
+        self.particle_system.add_particle(self.add_vec(self.pos, p1))
+        self.particle_system.add_particle(self.add_vec(self.pos, p2))
         self.rot_center()
         self.frame = (self.frame+1)%18
 

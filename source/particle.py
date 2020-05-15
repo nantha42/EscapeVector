@@ -1,10 +1,9 @@
-import numpy as np
 import object
 
 class Particle(object.Object):
     def __init__(self,pos):
         object.Object.__init__(self)
-        self.pos = np.array(pos)
+        self.pos = list(pos)
         self.size = 1
 
 class ParticleSystem:
@@ -15,7 +14,7 @@ class ParticleSystem:
 
     def add_particle(self,pos):
         self.particle_release_time += 1
-        if self.particle_release_time > 30:
+        if self.particle_release_time > 10:
 
             self.particles.append(Particle(pos))
             self.particle_release_time = 0
