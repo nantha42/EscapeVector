@@ -7,10 +7,12 @@ class Bullet(py.sprite.Sprite):
         self.pos = [0,0]
         self.dir = [1,0]
         self.time = 5
+
         self.image = py.image.load("../images/bullet.png")
 
         self.rect = self.image.get_rect()
-        self.speed  = 1000
+        self.speed  = 1500
+
         self.angle = angle
         self.rot_center()
 
@@ -30,30 +32,38 @@ class Bullet(py.sprite.Sprite):
 class BulletsSystem:
     def __init__(self):
         self.bullets = py.sprite.Group()
+        self.nexttime = 1
+        self.slowvalue = 1
 
     def add_bullet(self,pos,direction,angle):
-
-        if type(direction) == type([]):
-            b = Bullet(angle)
-            b.pos = list(pos)
-            b.dir = dir
-            self.bullets.add(b)
-        elif type(direction) == type(2):
-            b =Bullet(angle)
-            b.pos = list(pos)
-            r = math.radians(direction)
-            dire = [math.cos(r),math.sin(r)]
-            b.dir = dire
-            self.bullets.add(b)
-        # print("Size of bullets",len(self.bullets.sprites()))
-
-    def update(self):
-        remove = []
+        print("Calling",direction)
+        if self.nexttime <0:
+            if type(direction) == type([]):
+                b = Bullet(angle)
+                b.pos = list(pos)
+                b.dir = dir
+                self.bullets.add(b)
+                print("Add1")
+            elif type(direction) == type(2) or type(direction) == type(2.3):
+                b =Bullet(angle)
+                b.pos = list(pos)
+                r = math.radians(direction)
+                dire = [math.cos(r),math.sin(r)]
+                b.dir = dire
+                self.bullets.add(b)
+                print("Add2")
+            self.nexttime = 1
+        else:
+            self.nexttime -= 1*self.slowvalue
+    def update(self,slowvalue):
+        self.slowvalue = slowvalue
+        print("Sprites",len(self.bullets.sprites()))
         for b in self.bullets.sprites():
             if b.time>0:
-                b.pos[0] += b.dir[0]*b.speed*config.dt
-                b.pos[1] += b.dir[1]*b.speed*config.dt
-                b.time -= 0.5
+                b.pos[0] += b.dir[0]*b.speed*config.dt*slowvalue
+                b.pos[1] += b.dir[1]*b.speed*config.dt*slowvalue
+                b.time -= 0.5*slowvalue
+
             else:
                 b.kill()
 

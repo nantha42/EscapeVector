@@ -23,11 +23,13 @@ class Fighter(py.sprite.Sprite,object.Object):
         self.height = 80
         self.angle = 90
         self.pos = [100,100]
+        self.health = 100
         self.killit = False
         self.rect.x = random.randint(1000, 2000)
         self.rect.y = random.randint(1000, 2000)
         self.launched_missiles = None
         self.launch_time = 0
+        self.slowvalue = 1
         self.total_missiles = config.total_missiles
 
         self.particle_system = particle.ParticleSystem()
@@ -56,20 +58,24 @@ class Fighter(py.sprite.Sprite,object.Object):
 
 
 
-    def update(self,playerpos,speed):
+    def update(self,playerpos,speed,slowvalue):
+        self.slowvalue = slowvalue
         self.frame = (self.frame+1)%5
         if not self.killit:
-
             if(len(self.launched_missiles.sprites())<config.launch_missiles_limit and self.total_missiles > 0and self.launch_time>config.launch_time):
                 missile1 = missile.Missile()
                 missile1.pos = list(self.pos)
+                # missile1.v = self.v
                 self.launched_missiles.add(missile1)
                 self.launch_time = 0
                 self.total_missiles-=1
-            self.launch_time+=1
+            self.launch_time+=1*self.slowvalue
 
             ratio = (speed / config.normal_speed)
-            if speed >140:
+            if speed > config.normal_speed:
+                self.speed = config.normal_speed
+
+            elif 140 < speed < config.normal_speed:
                 self.speed = speed
             else:
                 self.speed = 140
@@ -84,6 +90,7 @@ class Fighter(py.sprite.Sprite,object.Object):
                         if(dis > 120):
                             rot_dir = self.sub_vec(playerpos, self.pos)
                             v_turn = self.unit(self.sub_vec(rot_dir, self.v))
+                            v_turn = self.multiply(self.slowvalue, v_turn)
                             t1 = self.multiply(self.speed, self.v)
                             t2 = self.multiply(self.turn_speed, v_turn)
                             # print(t1,"----",t2)
@@ -93,6 +100,7 @@ class Fighter(py.sprite.Sprite,object.Object):
             else:
                 rot_dir = self.sub_vec(playerpos, self.pos)
                 v_turn = self.unit(self.sub_vec(rot_dir, self.v))
+                v_turn = self.multiply(self.slowvalue, v_turn)
                 t1 = self.multiply(self.speed, self.v)
                 t2 = self.multiply(self.turn_speed, v_turn)
                 # print(t1,"----",t2)
@@ -106,7 +114,7 @@ class Fighter(py.sprite.Sprite,object.Object):
         # print("1  ",self.v)
         self.v = self.unit(self.v)
         # print("2  ",self.v)
-        self.pos = self.add_vec(self.pos, self.multiply(self.speed * config.dt, self.v))
+        self.pos = self.add_vec(self.pos, self.multiply(self.speed * config.dt*slowvalue, self.v))
         if not self.killit:
             self.particle_system.add_particle(self.pos)
         self.rot_center()

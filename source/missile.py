@@ -22,6 +22,7 @@ class Missile(py.sprite.Sprite, object.Object):
         self.rect.y = random.randint(1000, 2000)
         self.fuel = random.randint(config.missile_fuel-50,config.missile_fuel)
         self.killit = False
+        self.slowvalue = 1
 
 
     def renderPosition(self, ref):
@@ -48,8 +49,8 @@ class Missile(py.sprite.Sprite, object.Object):
         # self.rect.centerx = 300
         # self.rect.centery = 300
 
-    def update(self, playerpos, speed):
-
+    def update(self, playerpos, speed,slowvalue):
+        self.slowvalue = slowvalue
         if self.killit == False:
             rot_dir = self.sub_vec(playerpos,self.pos)
 
@@ -57,10 +58,15 @@ class Missile(py.sprite.Sprite, object.Object):
             if (config.missile_speed * ratio < 50):
                 self.speed = 80
             else:
-                self.speed = config.missile_speed * ratio
+                if ratio <= 1:
+                    self.speed = config.missile_speed * ratio
+                else:
+                    self.speed = config.missile_speed
+
             v_turn = self.unit(self.sub_vec(rot_dir ,self.v))
+            v_turn = self.multiply(self.slowvalue,v_turn)
             self.v = self.add_vec(self.multiply(self.speed,self.v), self.multiply(self.turn_speed,v_turn))
-            self.fuel -= 0.5
+            self.fuel -= 0.5*self.slowvalue
         else:
 
             self.kill()
@@ -70,7 +76,7 @@ class Missile(py.sprite.Sprite, object.Object):
                     self.particle_system.particles.remove(i)
 
         self.v = self.unit(self.v)
-        self.pos = self.add_vec(self.pos,self.multiply(self.speed*config.dt,self.v))
+        self.pos = self.add_vec(self.pos,self.multiply(self.speed*config.dt*self.slowvalue,self.v))
         if not self.killit:
             self.particle_system.add_particle(self.pos)
         self.rot_center()

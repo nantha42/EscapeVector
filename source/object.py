@@ -34,7 +34,7 @@ class Object:
         t = dot / (mag_a * mag_b)
         return math.acos(t)
 
-    def renderPosition(self,ref):
+    def renderPosition(self,ref,):
         self.renderpos = [self.pos[0] - ref[0],self.pos[1] - ref[1]]
         self.renderpos[0] += self.w_2
         self.renderpos[1] += self.h_2

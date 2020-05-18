@@ -1,5 +1,5 @@
 import pygame as py
-import numpy as np
+
 
 class Explosion:
     def __init__(self):
