@@ -22,6 +22,8 @@ class Fighter(py.sprite.Sprite,object.Object):
         self.width = 80
         self.height = 80
         self.angle = 90
+        self.noactiontime = 0
+        self.shoot = False
         self.pos = [100,100]
         self.health = 100
         self.killit = False
@@ -31,7 +33,7 @@ class Fighter(py.sprite.Sprite,object.Object):
         self.launch_time = 0
         self.slowvalue = 1
         self.total_missiles = config.total_missiles
-
+        self.angle = 0
         self.particle_system = particle.ParticleSystem()
 
     def renderPosition(self, ref):
@@ -59,17 +61,42 @@ class Fighter(py.sprite.Sprite,object.Object):
 
 
     def update(self,playerpos,speed,slowvalue):
+        missile_attack = False
+        shooting = False
+        direc = self.sub_vec(playerpos,self.pos)
+        dis = self.norm(direc)
+
+        if dis > 1500 or self.noactiontime> 70:
+            missile_attack = True
+        else:
+            shooting = True
+
         self.slowvalue = slowvalue
         self.frame = (self.frame+1)%5
         if not self.killit:
-            if(len(self.launched_missiles.sprites())<config.launch_missiles_limit and self.total_missiles > 0and self.launch_time>config.launch_time):
-                missile1 = missile.Missile()
-                missile1.pos = list(self.pos)
-                # missile1.v = self.v
-                self.launched_missiles.add(missile1)
-                self.launch_time = 0
-                self.total_missiles-=1
-            self.launch_time+=1*self.slowvalue
+            if missile_attack:
+                self.noactiontime = 0
+                if(len(self.launched_missiles.sprites())<config.launch_missiles_limit and self.total_missiles > 0and self.launch_time>config.launch_time):
+                    missile1 = missile.Missile()
+                    missile1.pos = list(self.pos)
+                    # missile1.v = self.v
+                    self.launched_missiles.add(missile1)
+                    self.launch_time = 0
+                    self.total_missiles-=1
+
+                self.launch_time+=1*self.slowvalue
+            elif shooting:
+                ang = math.degrees(self.angle_2vec(self.v,direc))
+                # print(ang)
+                self.noactiontime = 0
+                if ang <10:
+                    self.shoot = True
+                else:
+                    self.shoot = False
+                # print(math.degrees(ang))
+            else:
+                self.noactiontime+=1
+
 
             ratio = (speed / config.normal_speed)
             if speed > config.normal_speed:
@@ -121,3 +148,4 @@ class Fighter(py.sprite.Sprite,object.Object):
         self.renderPosition(playerpos)
         self.rect.centerx = self.renderpos[0]
         self.rect.centery = self.renderpos[1]
+        self.angle = self.calculate_angle(self.v)

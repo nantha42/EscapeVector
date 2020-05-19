@@ -36,14 +36,14 @@ class BulletsSystem:
         self.slowvalue = 1
 
     def add_bullet(self,pos,direction,angle):
-        print("Calling",direction)
+
         if self.nexttime <0:
             if type(direction) == type([]):
                 b = Bullet(angle)
                 b.pos = list(pos)
                 b.dir = dir
                 self.bullets.add(b)
-                print("Add1")
+
             elif type(direction) == type(2) or type(direction) == type(2.3):
                 b =Bullet(angle)
                 b.pos = list(pos)
@@ -51,13 +51,13 @@ class BulletsSystem:
                 dire = [math.cos(r),math.sin(r)]
                 b.dir = dire
                 self.bullets.add(b)
-                print("Add2")
+
             self.nexttime = 1
         else:
             self.nexttime -= 1*self.slowvalue
     def update(self,slowvalue):
         self.slowvalue = slowvalue
-        print("Sprites",len(self.bullets.sprites()))
+
         for b in self.bullets.sprites():
             if b.time>0:
                 b.pos[0] += b.dir[0]*b.speed*config.dt*slowvalue

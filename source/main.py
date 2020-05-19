@@ -51,6 +51,7 @@ class Game:
         self.fighter.otherFighters = self.fighters
         # self.fighter1.otherFighters = self.fighters
         self.bullets = bullet.BulletsSystem()
+        self.enemiesbullets = bullet.BulletsSystem()
         self.shoot = False
 
         self.explosions_size = 10
@@ -144,6 +145,8 @@ class Game:
         self.draw_hud()
 
 
+
+
     def draw_explosions(self):
         expired = []
         for exp in self.explosions:
@@ -188,9 +191,7 @@ class Game:
                 rect = missile.rect
                 prepos = [rect.x, rect.y]
                 pospos = [rect.x, rect.y]
-
                 pospos[0] += 32 * (f / config.missile_fuel)
-
                 py.draw.line(self.win, (0, 255, 0), self.makeint(prepos), self.makeint(pospos), 3)
 
     def draw_fighter_health(self):
@@ -258,11 +259,10 @@ class Game:
                 j = list(j)
                 self.explosions.append(self.get_exp(self.player.pos))
                 self.explosions.append(self.get_exp(ship.pos))
-                print("J ",j)
-
 
         group = self.missiles.sprites()
         bulls = self.bullets.bullets.sprites()
+        ebulls = self.enemiesbullets.bullets.sprites()
         for i in range(len(group)):
             missile = group[i]
             for j in range(i, len(group)):
@@ -286,8 +286,22 @@ class Game:
                     if self.fighter.health<=0:
                         self.fighter.killit = True
                         self.explosions.append(self.get_exp(self.fighter.pos))
+
             for b in hitted_bullets:
                 b.kill()
+        hitted_bullets = []
+        for b in ebulls:
+
+            if py.sprite.collide_mask(b, self.player):
+
+                self.player.health -= 10
+                hitted_bullets.append(b)
+                if self.player.health <= 0:
+                    self.player.health = 0
+                    self.explosions.append(self.get_exp(self.player.pos))
+        for b in hitted_bullets:
+            b.kill()
+
     def draw_bullets(self):
         w = config.screen_width / 2
         h = config.screen_height / 2
@@ -299,9 +313,15 @@ class Game:
             # print("Drawing",b.rect.x,b.rect.y)
             self.win.blit(b.image, b.rect)
 
+        for b in self.enemiesbullets.bullets:
+            k = random.randint(0, 80)
+            b.rect.centerx = (b.pos[0] - b.dir[0] * k) - self.player.pos[0] + w
+            b.rect.centery = (b.pos[1] - b.dir[1] * k) - self.player.pos[1] + h
+            # print("Drawing",b.rect.x,b.rect.y)
+            self.win.blit(b.image, b.rect)
+
     def handle_events(self):
         if self.shoot and self.player.live:
-
             self.bullets.add_bullet(self.player.pos, self.player.angle + random.randint(-2, 2), self.player.angle)
 
         if self.turn_left:
@@ -342,6 +362,12 @@ class Game:
         self.player.renderPosition()
         self.detect_collisions()
         self.bullets.update(self.slowvalue)
+        for fighter in self.fighters:
+            if fighter.shoot:
+                self.enemiesbullets.add_bullet(fighter.pos, fighter.angle + random.randint(-2, 2), fighter.angle)
+
+        self.enemiesbullets.update(self.slowvalue)
+
         py.display.update()
 
     def run(self):

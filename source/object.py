@@ -28,7 +28,7 @@ class Object:
         return a[0]*b[0]+a[1]*b[1]
 
     def angle_2vec(self, a, b):
-        dot = a.dot(b)
+        dot = self.dot(a,b)
         mag_a = self.norm(a)
         mag_b = self.norm(b)
         t = dot / (mag_a * mag_b)
@@ -42,3 +42,19 @@ class Object:
     def unit(self, x):
         n = self.norm(x)
         return [x[0]/n,x[1]/n]
+
+    def calculate_angle(self,x):
+        n = self.norm(x)
+        t = math.atan(x[1]/x[0])
+        a = math.fabs(math.degrees(t))
+        if x[0] >= 0:
+            if x[1]>=0:
+                return a
+            else:
+                return -a
+        else:
+            if x[1]>=0:
+                return 180-a
+            else:
+                return a-180
+

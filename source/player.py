@@ -49,6 +49,7 @@ class Player(py.sprite.Sprite,Object):
             ind = int((self.speed - 300) / 3)
 
             self.permimage = self.boom_imgs[ind]
+            self.permimage = py.transform.scale(self.permimage,(self.width*2,self.height*2))
         else:
             if not self.releasing_turbo:
                 if self.damaging:
@@ -63,7 +64,7 @@ class Player(py.sprite.Sprite,Object):
 
                 self.permimage = self.sonic_imgs[int(self.frame/3)]
 
-        self.permimage = py.transform.scale(self.permimage, (self.width,self.height))
+            self.permimage = py.transform.scale(self.permimage, (self.width,self.height))
         orig_rect = self.permimage.get_rect()
         # rad = np.arccos(np.dot(self.unit(self.v),np.array([1,0])))
         # self.angle = np.rad2deg(rad)
@@ -132,6 +133,7 @@ class Player(py.sprite.Sprite,Object):
         self.vParticle_system.add_particle(self.add_vec(self.pos,p2),vv)
         self.rot_center()
         self.frame = (self.frame+1)%18
+
 
     def renderPosition(self):
         self.particle_system.renderPosition(self.pos)
