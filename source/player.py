@@ -6,6 +6,7 @@ import pygame as py
 import spritesheet
 import math
 import random
+import time
 
 class Player(py.sprite.Sprite,Object):
     def __init__(self):
@@ -23,6 +24,7 @@ class Player(py.sprite.Sprite,Object):
         self.turbo = 100
         self.releasing_turbo = False
         self.slowvalue = 1
+
         for i in range(6):
             self.imgs.append(py.image.load("../images/top"+str(i+1)+".png"))
         for i in range(6):
@@ -43,6 +45,7 @@ class Player(py.sprite.Sprite,Object):
         self.image = py.image.load("../images/ship.png")
         self.rect = self.permimage.get_rect()
         self.angle = 0
+        self.shoottimer = time.time()
 
     def rot_center(self):
         if self.speed > 300 and self.speed < 324:
@@ -133,6 +136,8 @@ class Player(py.sprite.Sprite,Object):
         self.vParticle_system.add_particle(self.add_vec(self.pos,p2),vv)
         self.rot_center()
         self.frame = (self.frame+1)%18
+        #sounds
+
 
 
     def renderPosition(self):

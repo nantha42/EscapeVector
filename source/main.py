@@ -8,6 +8,7 @@ import bullet
 import random
 import vectors
 import minimap
+import sound
 
 
 class Game:
@@ -23,9 +24,7 @@ class Game:
         self.throttle_up = False
         self.slowtime = False
 
-
         self.slowduration = 10
-
 
         self.clock = py.time.Clock()
 
@@ -60,6 +59,13 @@ class Game:
         self.explosions = []
 
         self.dirty_rects = []
+
+        #######sounds#####
+        self.sounds = sound.Sound()
+        self.ticklowspeed = 0.5
+        self.tickhighspeed = 0.1
+        self.tickspeedrate = 0.05
+        self.tickspeed = 0.1
 
     def get_exp(self, pos):
         return [pos, 0, 10, 0, 10]
@@ -144,9 +150,6 @@ class Game:
         self.draw_fighter_health()
         self.draw_hud()
 
-
-
-
     def draw_explosions(self):
         expired = []
         for exp in self.explosions:
@@ -162,7 +165,7 @@ class Game:
                     img = self.explode.get_image(int(exp[1]))
 
                     self.win.blit(img, vectors.ret_int(pos))
-                    exp[1] += .5*self.slowvalue
+                    exp[1] += .5 * self.slowvalue
 
                 newpos = vectors.ret_int([pos[0] + rect.w / 2, pos[1] + rect.h / 2])
                 # print(newpos)
@@ -171,9 +174,9 @@ class Game:
                     py.draw.circle(self.win, (120, 120, 120), newpos, int(1.3 * exp[2]), 1)
 
                 if (exp[3] < 15):
-                    exp[3] += 0.5*self.slowvalue
-                exp[4] -= 0.7*self.slowvalue
-                exp[2] += (30 - exp[3])*self.slowvalue
+                    exp[3] += 0.5 * self.slowvalue
+                exp[4] -= 0.7 * self.slowvalue
+                exp[2] += (30 - exp[3]) * self.slowvalue
 
             else:
                 expired.append(exp)
@@ -252,8 +255,8 @@ class Game:
                     self.bullets.bullets.empty()
 
         for ship in self.fighters.sprites():
-            j =py.sprite.collide_mask(ship,self.player)
-            if j!=None :
+            j = py.sprite.collide_mask(ship, self.player)
+            if j != None:
                 ship.kill()
                 self.player.health = 0
                 j = list(j)
@@ -280,10 +283,10 @@ class Game:
                     self.explosions.append(self.get_exp(missile.pos))
                     hitted_bullets.append(b)
 
-                if py.sprite.collide_mask(b,self.fighter):
+                if py.sprite.collide_mask(b, self.fighter) and not self.fighter.killit :
                     self.fighter.health -= 10
                     hitted_bullets.append(b)
-                    if self.fighter.health<=0:
+                    if self.fighter.health <= 0:
                         self.fighter.killit = True
                         self.explosions.append(self.get_exp(self.fighter.pos))
 
@@ -343,14 +346,16 @@ class Game:
 
     def update(self):
         if self.slowtime:
-            self.slowvalue = 0.3
+            if self.slowvalue > 0.3:
+                self.slowvalue -= 0.04
         else:
-            self.slowvalue = 1
+            if self.slowvalue < 1:
+                self.slowvalue += 0.01
         self.handle_events()
         self.player.update(self.slowvalue)
-        self.fighters.update(self.player.pos, self.player.speed,self.slowvalue)
+        self.fighters.update(self.player.pos, self.player.speed, self.slowvalue)
         for missile in self.missiles.sprites():
-            missile.update(self.player.pos, self.player.speed,self.slowvalue)
+            missile.update(self.player.pos, self.player.speed, self.slowvalue)
             if missile.fuel < 0 and missile.killit == False:
                 missile.killit = True
                 self.explosions.append(self.get_exp(missile.pos))
@@ -367,8 +372,46 @@ class Game:
                 self.enemiesbullets.add_bullet(fighter.pos, fighter.angle + random.randint(-2, 2), fighter.angle)
 
         self.enemiesbullets.update(self.slowvalue)
-
+        self.playSounds()
         py.display.update()
+
+    def playSounds(self):
+
+        if self.player.speed >= 320 and self.player.speed <= 324:
+            print(self.player.speed)
+            self.sounds.mBooms()
+        print(self.tickspeed)
+        if self.shoot:
+            if self.slowtime:
+
+                k = self.sounds.mShoots(self.player.shoottimer, 1.5)
+                if k > 0:
+                    self.player.shoottimer = k
+            else:
+                k = self.sounds.mShoots(self.player.shoottimer, 1)
+                if k > 0:
+                    self.player.shoottimer = k
+
+        if self.slowtime:
+
+            if self.tickspeed < self.ticklowspeed:
+
+                j = self.sounds.mTicks(self.tickspeed)
+                if j > 0:
+                    self.tickspeed += 0.03
+            else:
+                self.sounds.mTicks(self.tickspeed)
+
+
+        elif not self.slowtime:
+            if self.tickspeed > self.tickhighspeed:
+                k = self.sounds.mTicks(self.tickspeed)
+                if k > 0:
+                    self.tickspeed -= self.tickspeedrate
+                    if self.tickspeedrate > 0.1:
+                        self.tickspeedrate -= 0.01
+                    else:
+                        self.tickspeedrate = 0.1
 
     def run(self):
         avg = 0
