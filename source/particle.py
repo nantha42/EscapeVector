@@ -56,8 +56,3 @@ class VelocityParticleSystem:
         for p in self.particles:
             p.renderPosition(ref)
 
-
-
-
-
-

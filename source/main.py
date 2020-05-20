@@ -42,7 +42,7 @@ class Game:
 
         self.fighter.launched_missiles = self.missiles
         # self.fighter1a.launched_missiles = self.missiles
-        self.fighter.pos = [150.0, 0]
+        self.fighter.pos = [-450.0, -300]
         # self.fighter1.pos = [10.0, 500]
         self.fighters.add(self.fighter)
         # self.fighters.add(self.fighter1)
@@ -381,9 +381,8 @@ class Game:
             print(self.player.speed)
             self.sounds.mBooms()
         print(self.tickspeed)
-        if self.shoot:
+        if self.shoot and self.player.health>0:
             if self.slowtime:
-
                 k = self.sounds.mShoots(self.player.shoottimer, 1.5)
                 if k > 0:
                     self.player.shoottimer = k
@@ -393,9 +392,7 @@ class Game:
                     self.player.shoottimer = k
 
         if self.slowtime:
-
             if self.tickspeed < self.ticklowspeed:
-
                 j = self.sounds.mTicks(self.tickspeed)
                 if j > 0:
                     self.tickspeed += 0.03
@@ -416,6 +413,7 @@ class Game:
     def run(self):
         avg = 0
         count = 0
+        self.sounds.playTheme()
         while not self.quit:
             self.event_handler()
             self.draw()
