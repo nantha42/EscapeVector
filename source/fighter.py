@@ -60,7 +60,7 @@ class Fighter(py.sprite.Sprite,object.Object):
 
 
 
-    def update(self,playerpos,speed,slowvalue):
+    def update(self,playerpos,speed,slowvalue,player_live):
         missile_attack = False
         shooting = False
         direc = self.sub_vec(playerpos,self.pos)
@@ -73,7 +73,11 @@ class Fighter(py.sprite.Sprite,object.Object):
 
         self.slowvalue = slowvalue
         self.frame = (self.frame+1)%5
-        if not self.killit:
+        print(player_live)
+        if not player_live:
+            self.shoot = False
+        if not self.killit and player_live:
+
             if missile_attack:
                 self.noactiontime = 0
                 if(len(self.launched_missiles.sprites())<config.launch_missiles_limit and self.total_missiles > 0and self.launch_time>config.launch_time):
@@ -133,11 +137,11 @@ class Fighter(py.sprite.Sprite,object.Object):
                 # print(t1,"----",t2)
                 self.v = self.add_vec(t1, t2)
         else:
-            self.kill()
 
             for i in self.particle_system.particles:
                 if (i.size >= config.particle_expansion_size):
                     self.particle_system.particles.remove(i)
+
         # print("1  ",self.v)
         self.v = self.unit(self.v)
         # print("2  ",self.v)

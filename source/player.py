@@ -131,9 +131,12 @@ class Player(py.sprite.Sprite,Object):
         r2 = math.radians(self.angle+random.randint(-90,90))
         p1 = self.multiply(5,[math.cos(r),math.sin(r)])
         p2 = self.multiply(random.randint(10, 45), [math.cos(r), math.sin(r)])
-        self.particle_system.add_particle(self.add_vec(self.pos, p1))
-        vv = [self.v[0],self.v[1]]
-        self.vParticle_system.add_particle(self.add_vec(self.pos,p2),vv)
+        if self.live:
+            self.particle_system.add_particle(self.add_vec(self.pos, p1))
+            vv = [self.v[0], self.v[1]]
+            self.vParticle_system.add_particle(self.add_vec(self.pos, p2), vv)
+
+
         self.rot_center()
         self.frame = (self.frame+1)%18
         #sounds

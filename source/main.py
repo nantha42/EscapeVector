@@ -253,15 +253,15 @@ class Game:
                     # self.player.kill()
                     self.player.live = False
                     self.bullets.bullets.empty()
-
-        for ship in self.fighters.sprites():
-            j = py.sprite.collide_mask(ship, self.player)
-            if j != None:
-                ship.kill()
-                self.player.health = 0
-                j = list(j)
-                self.explosions.append(self.get_exp(self.player.pos))
-                self.explosions.append(self.get_exp(ship.pos))
+        if self.player.live:
+            for ship in self.fighters.sprites():
+                j = py.sprite.collide_mask(ship, self.player)
+                if j != None :
+                    ship.kill()
+                    self.player.health = 0
+                    j = list(j)
+                    self.explosions.append(self.get_exp(self.player.pos))
+                    self.explosions.append(self.get_exp(ship.pos))
 
         group = self.missiles.sprites()
         bulls = self.bullets.bullets.sprites()
@@ -292,18 +292,19 @@ class Game:
 
             for b in hitted_bullets:
                 b.kill()
-        hitted_bullets = []
-        for b in ebulls:
 
-            if py.sprite.collide_mask(b, self.player):
+        if self.player.live:
+            hitted_bullets = []
+            for b in ebulls:
+                if py.sprite.collide_mask(b, self.player):
 
-                self.player.health -= 10
-                hitted_bullets.append(b)
-                if self.player.health <= 0:
-                    self.player.health = 0
-                    self.explosions.append(self.get_exp(self.player.pos))
-        for b in hitted_bullets:
-            b.kill()
+                    self.player.health -= 10
+                    hitted_bullets.append(b)
+                    if self.player.health <= 0:
+                        self.player.health = 0
+                        self.explosions.append(self.get_exp(self.player.pos))
+            for b in hitted_bullets:
+                b.kill()
 
     def draw_bullets(self):
         w = config.screen_width / 2
@@ -353,7 +354,7 @@ class Game:
                 self.slowvalue += 0.01
         self.handle_events()
         self.player.update(self.slowvalue)
-        self.fighters.update(self.player.pos, self.player.speed, self.slowvalue)
+        self.fighters.update(self.player.pos, self.player.speed, self.slowvalue,self.player.live)
         for missile in self.missiles.sprites():
             missile.update(self.player.pos, self.player.speed, self.slowvalue)
             if missile.fuel < 0 and missile.killit == False:
@@ -367,21 +368,24 @@ class Game:
         self.player.renderPosition()
         self.detect_collisions()
         self.bullets.update(self.slowvalue)
+
         for fighter in self.fighters:
             if fighter.shoot:
                 self.enemiesbullets.add_bullet(fighter.pos, fighter.angle + random.randint(-2, 2), fighter.angle)
-
         self.enemiesbullets.update(self.slowvalue)
+        if self.player.health<=0:
+            self.player.live = False
         self.playSounds()
         py.display.update()
 
     def playSounds(self):
 
-        if self.player.speed >= 320 and self.player.speed <= 324:
-            print(self.player.speed)
+        if self.player.speed >= 320 and self.player.speed <= 324 and self.player.live:
+
             self.sounds.mBooms()
-        print(self.tickspeed)
-        if self.shoot and self.player.health>0:
+
+
+        if self.shoot and self.player.live:
             if self.slowtime:
                 k = self.sounds.mShoots(self.player.shoottimer, 1.5)
                 if k > 0:
