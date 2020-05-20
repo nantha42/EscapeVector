@@ -41,7 +41,10 @@ class Object:
 
     def unit(self, x):
         n = self.norm(x)
-        return [x[0]/n,x[1]/n]
+        if n!=0:
+            return [x[0]/n,x[1]/n]
+        else:
+            return [0,0]
 
     def calculate_angle(self,x):
         n = self.norm(x)

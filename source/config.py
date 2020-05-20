@@ -1,22 +1,22 @@
 dt = 0.09
 
 #display parameters
-screen_width = 1300
+screen_width = 1400
 screen_height = 800
 
 #hero ship parameters
-normal_speed = 200
+normal_speed = 250
 player_health = 500
 
 #fighter parameters
-fighter_speed = 200
-fighter_turn_speed = 10
+fighter_speed = 300
+fighter_turn_speed = 15
 launch_missiles_limit = 3
 total_missiles = 100
 launch_time = 15
 
 #missile parameters
-missile_speed = 370
+missile_speed = 470
 missile_turn_speed = 35
 missile_fuel = 500
 

@@ -22,10 +22,10 @@ def dot(a, b):
 
 
 def angle_2vec(a, b):
-    dot = a.dot(b)
+    dott = dot(a,b)
     mag_a = norm(a)
     mag_b = norm(b)
-    t = dot / (mag_a * mag_b)
+    t = dott / (mag_a * mag_b)
     return math.acos(t)
 
 

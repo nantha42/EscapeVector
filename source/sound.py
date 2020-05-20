@@ -17,7 +17,7 @@ class Sound:
         self.lasttick = time.time()
 
     def playTheme(self):
-        self.serious.set_volume(self.sound)
+        self.serious.set_volume(0.5)
         self.serious.play(-1)
 
 

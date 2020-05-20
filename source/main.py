@@ -10,6 +10,7 @@ import vectors
 import minimap
 import sound
 import time
+import brain
 
 class Game:
     def __init__(self):
@@ -38,8 +39,8 @@ class Game:
 
         self.fighter.launched_missiles = self.missiles
         self.fighter1.launched_missiles = self.missiles
-        self.fighter.pos = [950.0, 0]
-        self.fighter1.pos = [10.0, 500]
+        self.fighter.pos = [000.0, 0]
+        self.fighter1.pos = [700.0, 500]
         self.fighters.add(self.fighter)
         self.fighters.add(self.fighter1)
 
@@ -49,6 +50,8 @@ class Game:
         self.enemiesbullets = bullet.BulletsSystem()
         self.shoot = False
 
+        self.ai = brain.Brain()
+        self.ai.fighters = self.fighters.sprites()
         self.explosions_size = 10
         self.initial_explosion = []
 
@@ -240,6 +243,8 @@ class Game:
 
     def detect_collisions(self):
         for missile in self.missiles.sprites():
+            if not missile.activated:
+                continue
             col = py.sprite.collide_mask(missile, self.player)
             if col != None:
                 missile.killit = True
@@ -251,6 +256,12 @@ class Game:
                     # self.player.kill()
                     self.player.live = False
                     self.bullets.bullets.empty()
+            for fighter in self.fighters.sprites():
+                if py.sprite.collide_mask(missile,fighter):
+                    missile.killit = True
+                    self.explosions.append(self.get_exp(missile.pos))
+                    fighter.killit = True
+
         if self.player.live:
             for ship in self.fighters.sprites():
                 j = py.sprite.collide_mask(ship, self.player)
@@ -354,6 +365,7 @@ class Game:
             if self.slowvalue < 1:
                 self.slowvalue += 0.01
         self.handle_events()
+        self.ai.control(self.player)
         self.player.update(self.slowvalue)
         self.fighters.update(self.player.pos, self.player.speed, self.slowvalue,self.player.live)
         for missile in self.missiles.sprites():

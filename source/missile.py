@@ -5,7 +5,7 @@ import pygame as py
 import config
 import math
 import random
-
+import time
 
 class Missile(py.sprite.Sprite, object.Object):
 
@@ -22,6 +22,8 @@ class Missile(py.sprite.Sprite, object.Object):
         self.rect.y = random.randint(1000, 2000)
         self.fuel = random.randint(config.missile_fuel-50,config.missile_fuel)
         self.killit = False
+        self.created_time = time.time()
+        self.activated = False
         self.slowvalue = 1
 
 
@@ -53,24 +55,13 @@ class Missile(py.sprite.Sprite, object.Object):
         self.slowvalue = slowvalue
         if self.killit == False:
             rot_dir = self.sub_vec(playerpos,self.pos)
-
-            ratio = (speed / config.normal_speed)
-            if (config.missile_speed * ratio < 50):
-                self.speed = 80
-            else:
-                if ratio <= 1:
-                    self.speed = config.missile_speed * ratio
-                else:
-                    self.speed = config.missile_speed
-
             v_turn = self.unit(self.sub_vec(rot_dir ,self.v))
             v_turn = self.multiply(self.slowvalue,v_turn)
             self.v = self.add_vec(self.multiply(self.speed,self.v), self.multiply(self.turn_speed,v_turn))
             self.fuel -= 0.5*self.slowvalue
+
         else:
-
             self.kill()
-
             for i in self.particle_system.particles:
                 if (i.size >= config.particle_expansion_size):
                     self.particle_system.particles.remove(i)
@@ -83,6 +74,9 @@ class Missile(py.sprite.Sprite, object.Object):
         self.renderPosition(playerpos)
         self.rect.centerx = self.renderpos[0]
         self.rect.centery = self.renderpos[1]
+
+        if time.time() -self.created_time > 0.5:
+            self.activated = True
 
         # self.rect.x = self.renderpos[0]
         # self.rect.y = self.renderpos[1]
