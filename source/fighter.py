@@ -5,6 +5,7 @@ import config
 import missile
 import particle
 import random
+import time
 
 class Fighter(py.sprite.Sprite,object.Object):
 
@@ -33,6 +34,7 @@ class Fighter(py.sprite.Sprite,object.Object):
         self.launch_time = 0
         self.slowvalue = 1
         self.total_missiles = config.total_missiles
+        self.shoottimer = time.time()
         self.angle = 0
         self.particle_system = particle.ParticleSystem()
 
@@ -73,71 +75,72 @@ class Fighter(py.sprite.Sprite,object.Object):
 
         self.slowvalue = slowvalue
         self.frame = (self.frame+1)%5
-        print(player_live)
+
         if not player_live:
             self.shoot = False
-        if not self.killit and player_live:
+        if not self.killit:
+            if player_live:
 
-            if missile_attack:
-                self.noactiontime = 0
-                if(len(self.launched_missiles.sprites())<config.launch_missiles_limit and self.total_missiles > 0and self.launch_time>config.launch_time):
-                    missile1 = missile.Missile()
-                    missile1.pos = list(self.pos)
-                    # missile1.v = self.v
-                    self.launched_missiles.add(missile1)
-                    self.launch_time = 0
-                    self.total_missiles-=1
+                if missile_attack:
+                    self.noactiontime = 0
+                    if(len(self.launched_missiles.sprites())<config.launch_missiles_limit and self.total_missiles > 0and self.launch_time>config.launch_time):
+                        missile1 = missile.Missile()
+                        missile1.pos = list(self.pos)
+                        # missile1.v = self.v
+                        self.launched_missiles.add(missile1)
+                        self.launch_time = 0
+                        self.total_missiles-=1
 
-                self.launch_time+=1*self.slowvalue
-            elif shooting:
-                ang = math.degrees(self.angle_2vec(self.v,direc))
-                # print(ang)
-                self.noactiontime = 0
-                if ang <10:
-                    self.shoot = True
+                    self.launch_time+=1*self.slowvalue
+                elif shooting:
+                    ang = math.degrees(self.angle_2vec(self.v,direc))
+                    # print(ang)
+                    self.noactiontime = 0
+                    if ang <10:
+                        self.shoot = True
+                    else:
+                        self.shoot = False
+                    # print(math.degrees(ang))
                 else:
-                    self.shoot = False
-                # print(math.degrees(ang))
-            else:
-                self.noactiontime+=1
+                    self.noactiontime+=1
 
 
-            ratio = (speed / config.normal_speed)
-            if speed > config.normal_speed:
-                self.speed = config.normal_speed
+                ratio = (speed / config.normal_speed)
+                if speed > config.normal_speed:
+                    self.speed = config.normal_speed
 
-            elif 140 < speed < config.normal_speed:
-                self.speed = speed
-            else:
-                self.speed = 140
-            # if (config.missile_speed * ratio < 50):
-            #     self.speed = 80
-            # else:
-            #     self.speed = config.missile_speed * ratio
-            if len(self.otherFighters.sprites())>1:
-                for fighter in self.otherFighters.sprites():
-                    if fighter!= self:
-                        dis = self.norm(self.sub_vec(self.pos,fighter.pos))
-                        if(dis > 120):
-                            rot_dir = self.sub_vec(playerpos, self.pos)
-                            v_turn = self.unit(self.sub_vec(rot_dir, self.v))
-                            v_turn = self.multiply(self.slowvalue, v_turn)
-                            t1 = self.multiply(self.speed, self.v)
-                            t2 = self.multiply(self.turn_speed, v_turn)
-                            # print(t1,"----",t2)
-                            self.v = self.add_vec(t1 ,t2 )
-                        else:
-                            self.v = fighter.v
-            else:
-                rot_dir = self.sub_vec(playerpos, self.pos)
-                v_turn = self.unit(self.sub_vec(rot_dir, self.v))
-                v_turn = self.multiply(self.slowvalue, v_turn)
-                t1 = self.multiply(self.speed, self.v)
-                t2 = self.multiply(self.turn_speed, v_turn)
-                # print(t1,"----",t2)
-                self.v = self.add_vec(t1, t2)
+                elif 140 < speed < config.normal_speed:
+                    self.speed = speed
+                else:
+                    self.speed = 140
+                # if (config.missile_speed * ratio < 50):
+                #     self.speed = 80
+                # else:
+                #     self.speed = config.missile_speed * ratio
+                if len(self.otherFighters.sprites())>1:
+                    for fighter in self.otherFighters.sprites():
+                        if fighter!= self:
+                            dis = self.norm(self.sub_vec(self.pos,fighter.pos))
+                            if(dis > 120):
+                                rot_dir = self.sub_vec(playerpos, self.pos)
+                                v_turn = self.unit(self.sub_vec(rot_dir, self.v))
+                                v_turn = self.multiply(self.slowvalue, v_turn)
+                                t1 = self.multiply(self.speed, self.v)
+                                t2 = self.multiply(self.turn_speed, v_turn)
+                                # print(t1,"----",t2)
+                                self.v = self.add_vec(t1 ,t2 )
+                            else:
+                                self.v = fighter.v
+                else:
+                    rot_dir = self.sub_vec(playerpos, self.pos)
+                    v_turn = self.unit(self.sub_vec(rot_dir, self.v))
+                    v_turn = self.multiply(self.slowvalue, v_turn)
+                    t1 = self.multiply(self.speed, self.v)
+                    t2 = self.multiply(self.turn_speed, v_turn)
+                    # print(t1,"----",t2)
+                    self.v = self.add_vec(t1, t2)
         else:
-
+            self.kill()
             for i in self.particle_system.particles:
                 if (i.size >= config.particle_expansion_size):
                     self.particle_system.particles.remove(i)

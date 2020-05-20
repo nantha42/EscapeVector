@@ -4,12 +4,13 @@ import time
 
 class Sound:
     def __init__(self):
-        self.songs = ["../sounds/explosion01.wav","../sounds/shootbullet.wav","../sounds/tick1.wav","../sounds/gametrack.wav"]
+        self.songs = ["../sounds/explosion01.wav","../sounds/shootbullet.wav","../sounds/tick1.wav","../sounds/gametrack.wav","../sounds/bullethit.wav"]
         py.mixer.init()
         self.boom = py.mixer.Sound(self.songs[0])
         self.shoot = py.mixer.Sound(self.songs[1])
         self.tick = py.mixer.Sound(self.songs[2])
         self.serious = py.mixer.Sound(self.songs[3])
+        self.hit = py.mixer.Sound(self.songs[4])
         self.sound = 0.1
         self.boomtimer = time.time()
         self.shoottimer = time.time()
@@ -28,14 +29,13 @@ class Sound:
             self.boom.play(0)
             self.boomtimer= time.time()
 
-    def mShoots(self,shottime,slowvalue):
-        now = time.time()
-        if now - shottime > 0.1*slowvalue:
-            self.shoot.set_volume(self.sound)
-            self.shoot.play(0)
+    def mShoots(self):
+        self.shoot.set_volume(self.sound)
+        self.shoot.play(0)
 
-            return now
-        return -1
+    def mHit(self):
+        self.hit.set_volume(self.sound)
+        self.hit.play(0)
 
     def mTicks(self,tickdur):
         now = time.time()

@@ -9,7 +9,7 @@ import random
 import vectors
 import minimap
 import sound
-
+import time
 
 class Game:
     def __init__(self):
@@ -23,17 +23,13 @@ class Game:
         self.throttle_down = True
         self.throttle_up = False
         self.slowtime = False
-
         self.slowduration = 10
-
         self.clock = py.time.Clock()
-
         self.hud_base = py.transform.scale(py.image.load("../images/hud.png"), (200, 200))
         self.player = player.Player()
         self.explode = explosion.Explosion()
         self.player.pos = [500, 0]
         self.minimap = minimap.Minimap()
-
         self.fighter = fighter.Fighter()
         self.fighter1 = fighter.Fighter()
         self.missiles = py.sprite.Group()
@@ -41,14 +37,14 @@ class Game:
         self.slowvalue = 1
 
         self.fighter.launched_missiles = self.missiles
-        # self.fighter1a.launched_missiles = self.missiles
-        self.fighter.pos = [-450.0, -300]
-        # self.fighter1.pos = [10.0, 500]
+        self.fighter1.launched_missiles = self.missiles
+        self.fighter.pos = [950.0, 0]
+        self.fighter1.pos = [10.0, 500]
         self.fighters.add(self.fighter)
-        # self.fighters.add(self.fighter1)
+        self.fighters.add(self.fighter1)
 
         self.fighter.otherFighters = self.fighters
-        # self.fighter1.otherFighters = self.fighters
+        self.fighter1.otherFighters = self.fighters
         self.bullets = bullet.BulletsSystem()
         self.enemiesbullets = bullet.BulletsSystem()
         self.shoot = False
@@ -62,6 +58,8 @@ class Game:
 
         #######sounds#####
         self.sounds = sound.Sound()
+        self.playerhit = False
+        self.fighterhit = False
         self.ticklowspeed = 0.5
         self.tickhighspeed = 0.1
         self.tickspeedrate = 0.05
@@ -266,8 +264,10 @@ class Game:
         group = self.missiles.sprites()
         bulls = self.bullets.bullets.sprites()
         ebulls = self.enemiesbullets.bullets.sprites()
+        hitted_bullets = []
         for i in range(len(group)):
             missile = group[i]
+            #missile missile collision
             for j in range(i, len(group)):
                 missileB = group[j]
                 if missile != missileB:
@@ -275,31 +275,32 @@ class Game:
                         missile.killit = True
                         missileB.killit = True
                         self.explosions.append(self.get_exp(missile.pos))
-            hitted_bullets = []
+
+            #bullet missile collision
             for j in range(i, len(bulls)):
                 b = bulls[j]
                 if py.sprite.collide_mask(b, missile):
                     missile.killit = True
                     self.explosions.append(self.get_exp(missile.pos))
                     hitted_bullets.append(b)
+                # bullet fighter collision
 
-                if py.sprite.collide_mask(b, self.fighter) and not self.fighter.killit :
-                    self.fighter.health -= 10
+        for b in bulls:
+            for fighter in self.fighters.sprites():
+                if py.sprite.collide_mask(b, fighter) and not fighter.killit:
+                    fighter.health -= 10
                     hitted_bullets.append(b)
-                    if self.fighter.health <= 0:
-                        self.fighter.killit = True
-                        self.explosions.append(self.get_exp(self.fighter.pos))
-
-            for b in hitted_bullets:
-                b.kill()
+                    self.fighterhit = True
+                    if fighter.health <= 0:
+                        fighter.killit = True
+                        self.explosions.append(self.get_exp(fighter.pos))
 
         if self.player.live:
-            hitted_bullets = []
             for b in ebulls:
                 if py.sprite.collide_mask(b, self.player):
-
                     self.player.health -= 10
                     hitted_bullets.append(b)
+                    self.playerhit = True
                     if self.player.health <= 0:
                         self.player.health = 0
                         self.explosions.append(self.get_exp(self.player.pos))
@@ -386,14 +387,31 @@ class Game:
 
 
         if self.shoot and self.player.live:
+
             if self.slowtime:
-                k = self.sounds.mShoots(self.player.shoottimer, 1.5)
-                if k > 0:
-                    self.player.shoottimer = k
+                now = time.time()
+                if now - self.player.shoottimer >= 0.1*1.5:
+                    self.sounds.mShoots()
+                    self.player.shoottimer = now
             else:
-                k = self.sounds.mShoots(self.player.shoottimer, 1)
-                if k > 0:
-                    self.player.shoottimer = k
+                now = time.time()
+                if now - self.player.shoottimer >= 0.1 :
+                    self.sounds.mShoots()
+                    self.player.shoottimer = now
+
+        for fighter in self.fighters.sprites():
+            if fighter.shoot:
+                if self.slowtime:
+                    now = time.time()
+                    if now - fighter.shoottimer >= 0.1 * 1.5:
+                        self.sounds.mShoots()
+                        fighter.shoottimer = now
+                else:
+                    now = time.time()
+                    if now - fighter.shoottimer >= 0.1:
+                        self.sounds.mShoots()
+                        fighter.shoottimer = now
+
 
         if self.slowtime:
             if self.tickspeed < self.ticklowspeed:
@@ -413,6 +431,14 @@ class Game:
                         self.tickspeedrate -= 0.01
                     else:
                         self.tickspeedrate = 0.1
+        if self.playerhit:
+            self.sounds.mHit()
+            self.playerhit = False
+
+        if self.fighterhit:
+            self.sounds.mHit()
+            self.fighterhit = False
+
 
     def run(self):
         avg = 0
@@ -422,9 +448,7 @@ class Game:
             self.event_handler()
             self.draw()
             self.update()
-
             self.clock.tick(40)
-
 
 if __name__ == '__main__':
     g = Game()
