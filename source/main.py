@@ -12,6 +12,7 @@ import sound
 import time
 import brain
 import menu
+import clouds
 
 
 class Game:
@@ -40,30 +41,39 @@ class Game:
         self.explode = explosion.Explosion()
         self.player.pos = [500, 0]
         self.minimap = minimap.Minimap()
-        self.fighter = fighter.Fighter()
-        self.fighter1 = fighter.Fighter()
-        self.missiles = py.sprite.Group()
+        self.nfighters = 3
         self.fighters = py.sprite.Group()
+        self.missiles = py.sprite.Group()
+        for i in range(self.nfighters):
+            figh = fighter.Fighter()
+            figh.launched_missiles = self.missiles
+            self.fighters.add(figh)
+            figh.otherFighters = self.fighters
+            figh.pos = [i*-400,i*231]
+
+        # self.fighter = fighter.Fighter()
+        # self.fighter1 = fighter.Fighter()
+        # self.fighter2 = fighter.Fighter()
+
+
+
         self.slowvalue = 1
-
-        self.fighter.launched_missiles = self.missiles
-        self.fighter1.launched_missiles = self.missiles
-        self.fighter.pos = [000.0, 0]
-        self.fighter1.pos = [700.0, 500]
-        self.fighters.add(self.fighter)
-        self.fighters.add(self.fighter1)
-
-        self.fighter.otherFighters = self.fighters
-        self.fighter1.otherFighters = self.fighters
+        # self.fighter.launched_missiles = self.missiles
+        # self.fighter1.launched_missiles = self.missiles
+        # self.fighter.pos = [000.0, 0]
+        # self.fighter1.pos = [700.0, 500]
+        # self.fighters.add(self.fighter)
+        # self.fighters.add(self.fighter1)
+        # self.fighter.otherFighters = self.fighters
+        # self.fighter1.otherFighters = self.fighters
         self.bullets = bullet.BulletsSystem()
         self.enemiesbullets = bullet.BulletsSystem()
         self.shoot = False
-
         self.ai = brain.Brain()
         self.ai.fighters = self.fighters.sprites()
         self.explosions_size = 10
         self.initial_explosion = []
-
+        self.clouds = clouds.Clouds()
         self.explosions = []
 
         self.dirty_rects = []
@@ -161,13 +171,18 @@ class Game:
                     i.size += .1
             # for i in self.player.vParticle_system.particles:
             #     py.draw.circle(self.win, (255, 255, 255), vectors.ret_int(i.renderpos), 1, 1)
-            self.win.blit(self.minimap.image, (30, config.screen_height - 128))
+
             self.draw_explosions()
             self.draw_missile_fuel_indicator()
             self.draw_fighter_health()
+            self.draw_clouds()
             self.draw_hud()
+            self.win.blit(self.minimap.image, (30, config.screen_height - 128))
         else:
             self.menu_system.draw(self.win)
+    def draw_clouds(self):
+        self.clouds.draw(self.win,self.player.pos)
+
     def draw_explosions(self):
         expired = []
         for exp in self.explosions:
@@ -216,14 +231,14 @@ class Game:
                 py.draw.line(self.win, (0, 255, 0), self.makeint(prepos), self.makeint(pospos), 3)
 
     def draw_fighter_health(self):
-        if not self.fighter.killit:
-            f = self.fighter.health
-            rect = self.fighter.rect
-            prepos = [rect.x, rect.y]
-            pospos = [rect.x, rect.y]
-
-            pospos[0] += 90 * (f / 100)
-            py.draw.line(self.win, (0, 255, 0), self.makeint(prepos), self.makeint(pospos), 3)
+        for fighter in self.fighters.sprites():
+            if not fighter.killit:
+                f = fighter.health
+                rect = fighter.rect
+                prepos = [rect.x, rect.y]
+                pospos = [rect.x, rect.y]
+                pospos[0] += 90 * (f / 100)
+                py.draw.line(self.win, (0, 255, 0), self.makeint(prepos), self.makeint(pospos), 3)
 
     def draw_hud(self):
         self.draw_player_health()
@@ -394,9 +409,10 @@ class Game:
                     missile.killit = True
                     self.explosions.append(self.get_exp(missile.pos))
             all_sprites = []
-            if self.fighter.killit == False:
-                all_sprites = [self.fighter]
+            # if self.fighter.killit == False:
+            #     all_sprites = [self.fighter]
             all_sprites.extend(self.missiles.sprites())
+            all_sprites.extend(self.fighters.sprites())
             self.minimap.update(all_sprites, self.player)
             self.player.renderPosition()
             self.detect_collisions()

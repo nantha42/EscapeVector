@@ -1,7 +1,6 @@
 import pygame as py
 import time
 
-
 class Sound:
     def __init__(self):
         self.songs = ["../sounds/explosion01.wav","../sounds/shootbullet.wav","../sounds/tick1.wav","../sounds/gametrack3.wav","../sounds/bullethit.wav"]
@@ -24,8 +23,8 @@ class Sound:
     def mBooms(self):
         now  = time.time()
         if now -self.boomtimer > 2:
-            print(now,self.boomtimer,now-self.boomtimer)
-            self.boom.set_volume(self.sound)
+
+            self.boom.set_volume(0.5)
             self.boom.play(0)
             self.boomtimer= time.time()
 
