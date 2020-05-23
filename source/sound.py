@@ -4,7 +4,7 @@ import time
 
 class Sound:
     def __init__(self):
-        self.songs = ["../sounds/explosion01.wav","../sounds/shootbullet.wav","../sounds/tick1.wav","../sounds/gametrack.wav","../sounds/bullethit.wav"]
+        self.songs = ["../sounds/explosion01.wav","../sounds/shootbullet.wav","../sounds/tick1.wav","../sounds/gametrack3.wav","../sounds/bullethit.wav"]
         py.mixer.init()
         self.boom = py.mixer.Sound(self.songs[0])
         self.shoot = py.mixer.Sound(self.songs[1])

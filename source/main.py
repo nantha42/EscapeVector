@@ -11,11 +11,20 @@ import minimap
 import sound
 import time
 import brain
+import menu
+
 
 class Game:
     def __init__(self):
         self.win = py.display.set_mode((config.screen_width, config.screen_height))
+        py.font.init()
         py.display.set_caption("EscapeVector")
+
+        #----------Menusystem---------
+        self.menu_system = menu.Menu()
+
+        ############
+        self.mouse_clicked = False
         self.quit = False
         self.mouse_pos = (0, 0)
         self.turn_right = False
@@ -74,7 +83,7 @@ class Game:
     def event_handler(self):
         for event in py.event.get():
             if event.type == py.QUIT:
-                self.quit = True
+                self.menu_system.state = "quitgame"
 
             if event.type == py.KEYDOWN:
                 if event.key == py.K_a:
@@ -90,7 +99,7 @@ class Game:
                 if event.key == py.K_SPACE:
                     self.shoot = True
 
-                if event.key == py.K_n:
+                if event.key == py.K_LSHIFT:
                     self.turbo = True
 
                 if event.key == py.K_j:
@@ -116,41 +125,49 @@ class Game:
                 if event.key == py.K_SPACE:
                     self.shoot = False
 
-                if event.key == py.K_n:
+                if event.key == py.K_LSHIFT:
                     self.turbo = False
 
                 if event.key == py.K_j:
                     self.slowtime = False
 
+            if event.type == py.MOUSEBUTTONDOWN:
+                self.mouse_clicked = True
+
+            if event.type == py.MOUSEBUTTONUP:
+                self.mouse_clicked = False
+
     def draw(self):
-        self.win.fill((0x8c, 0xbe, 0xd6))
-        self.dirty_rects = []
-        self.draw_bullets()
-        if self.player.health > 0:
-            self.win.blit(self.player.image, self.player.rect)
+        if self.menu_system.state=="start":
+            self.win.fill((0x8c, 0xbe, 0xd6))
+            self.dirty_rects = []
+            self.draw_bullets()
+            if self.player.health > 0:
+                self.win.blit(self.player.image, self.player.rect)
 
-        self.missiles.draw(self.win)
-        self.fighters.draw(self.win)
+            self.missiles.draw(self.win)
+            self.fighters.draw(self.win)
 
-        for missile in self.missiles.sprites():
-            for i in missile.particle_system.particles:
+            for missile in self.missiles.sprites():
+                for i in missile.particle_system.particles:
+                    if (i.size < config.particle_expansion_size):
+                        py.draw.circle(self.win, (100, 100, 100), vectors.ret_int(i.renderpos), int(i.size),
+                                       int(i.size))
+
+                        i.size += .1
+            for i in self.player.particle_system.particles:
                 if (i.size < config.particle_expansion_size):
-                    py.draw.circle(self.win, (100, 100, 100), vectors.ret_int(i.renderpos), int(i.size),
-                                   int(i.size))
-
+                    py.draw.circle(self.win, (100, 100, 100), vectors.ret_int(i.renderpos), int(i.size), int(i.size))
                     i.size += .1
-        for i in self.player.particle_system.particles:
-            if (i.size < config.particle_expansion_size):
-                py.draw.circle(self.win, (100, 100, 100), vectors.ret_int(i.renderpos), int(i.size), int(i.size))
-                i.size += .1
-        # for i in self.player.vParticle_system.particles:
-        #     py.draw.circle(self.win, (255, 255, 255), vectors.ret_int(i.renderpos), 1, 1)
-        self.win.blit(self.minimap.image, (30, config.screen_height - 128))
-        self.draw_explosions()
-        self.draw_missile_fuel_indicator()
-        self.draw_fighter_health()
-        self.draw_hud()
-
+            # for i in self.player.vParticle_system.particles:
+            #     py.draw.circle(self.win, (255, 255, 255), vectors.ret_int(i.renderpos), 1, 1)
+            self.win.blit(self.minimap.image, (30, config.screen_height - 128))
+            self.draw_explosions()
+            self.draw_missile_fuel_indicator()
+            self.draw_fighter_health()
+            self.draw_hud()
+        else:
+            self.menu_system.draw(self.win)
     def draw_explosions(self):
         expired = []
         for exp in self.explosions:
@@ -358,37 +375,42 @@ class Game:
             self.player.stop_turb()
 
     def update(self):
-        if self.slowtime:
-            if self.slowvalue > 0.3:
-                self.slowvalue -= 0.04
-        else:
-            if self.slowvalue < 1:
-                self.slowvalue += 0.01
-        self.handle_events()
-        self.ai.control(self.player)
-        self.player.update(self.slowvalue)
-        self.fighters.update(self.player.pos, self.player.speed, self.slowvalue,self.player.live)
-        for missile in self.missiles.sprites():
-            missile.update(self.player.pos, self.player.speed, self.slowvalue)
-            if missile.fuel < 0 and missile.killit == False:
-                missile.killit = True
-                self.explosions.append(self.get_exp(missile.pos))
-        all_sprites = []
-        if self.fighter.killit == False:
-            all_sprites = [self.fighter]
-        all_sprites.extend(self.missiles.sprites())
-        self.minimap.update(all_sprites, self.player)
-        self.player.renderPosition()
-        self.detect_collisions()
-        self.bullets.update(self.slowvalue)
 
-        for fighter in self.fighters:
-            if fighter.shoot:
-                self.enemiesbullets.add_bullet(fighter.pos, fighter.angle + random.randint(-2, 2), fighter.angle)
-        self.enemiesbullets.update(self.slowvalue)
-        if self.player.health<=0:
-            self.player.live = False
-        self.playSounds()
+        if self.menu_system.state == "start":
+            if self.slowtime:
+                if self.slowvalue > 0.3:
+                    self.slowvalue -= 0.04
+            else:
+                if self.slowvalue < 1:
+                    self.slowvalue += 0.01
+
+            self.handle_events()
+            self.ai.control(self.player)
+            self.player.update(self.slowvalue)
+            self.fighters.update(self.player.pos, self.player.speed, self.slowvalue,self.player.live)
+            for missile in self.missiles.sprites():
+                missile.update(self.player.pos, self.player.speed, self.slowvalue)
+                if missile.fuel < 0 and missile.killit == False:
+                    missile.killit = True
+                    self.explosions.append(self.get_exp(missile.pos))
+            all_sprites = []
+            if self.fighter.killit == False:
+                all_sprites = [self.fighter]
+            all_sprites.extend(self.missiles.sprites())
+            self.minimap.update(all_sprites, self.player)
+            self.player.renderPosition()
+            self.detect_collisions()
+            self.bullets.update(self.slowvalue)
+
+            for fighter in self.fighters.sprites():
+                if fighter.shoot:
+                    self.enemiesbullets.add_bullet(fighter.pos, fighter.angle + random.randint(-2, 2), fighter.angle)
+            self.enemiesbullets.update(self.slowvalue)
+            if self.player.health<=0:
+                self.player.live = False
+            self.playSounds()
+        else:
+            self.menu_system.update(py.mouse.get_pos(),self.mouse_clicked)
         py.display.update()
 
     def playSounds(self):
@@ -456,7 +478,7 @@ class Game:
         avg = 0
         count = 0
         self.sounds.playTheme()
-        while not self.quit:
+        while self.menu_system.state != "quitgame":
             self.event_handler()
             self.draw()
             self.update()
