@@ -136,11 +136,9 @@ class Player(py.sprite.Sprite,Object):
             vv = [self.v[0], self.v[1]]
             self.vParticle_system.add_particle(self.add_vec(self.pos, p2), vv)
 
-
         self.rot_center()
         self.frame = (self.frame+1)%18
         #sounds
-
 
 
     def renderPosition(self):

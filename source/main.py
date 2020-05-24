@@ -43,6 +43,7 @@ class Game:
         self.player.pos = [500, 0]
         self.minimap = minimap.Minimap()
         self.nfighters = 3
+        self.missiles_exploded = []
         self.fighters = py.sprite.Group()
         self.missiles = py.sprite.Group()
         for i in range(self.nfighters):
@@ -285,6 +286,7 @@ class Game:
             col = py.sprite.collide_mask(missile, self.player)
             if col != None:
                 missile.killit = True
+                self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos,self.player.pos)))
                 self.explosions.append(self.get_exp(missile.pos))
                 self.player.health -= 30
                 self.player.damaging = True
@@ -296,6 +298,7 @@ class Game:
             for fighter in self.fighters.sprites():
                 if py.sprite.collide_mask(missile,fighter):
                     missile.killit = True
+                    self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos,self.player.pos)))
                     self.explosions.append(self.get_exp(missile.pos))
                     fighter.health-= 10
 
@@ -306,6 +309,7 @@ class Game:
                     ship.kill()
                     self.player.health = 0
                     j = list(j)
+                    self.missiles_exploded.append(0)
                     self.explosions.append(self.get_exp(self.player.pos))
                     self.explosions.append(self.get_exp(ship.pos))
 
@@ -322,6 +326,7 @@ class Game:
                     if py.sprite.collide_mask(missile, missileB) != None:
                         missile.killit = True
                         missileB.killit = True
+                        self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos, self.player.pos)))
                         self.explosions.append(self.get_exp(missile.pos))
 
             #bullet missile collision
@@ -329,6 +334,7 @@ class Game:
                 b = bulls[j]
                 if py.sprite.collide_mask(b, missile):
                     missile.killit = True
+                    self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos,self.player.pos)))
                     self.explosions.append(self.get_exp(missile.pos))
                     hitted_bullets.append(b)
                 # bullet fighter collision
@@ -341,6 +347,7 @@ class Game:
                     self.fighterhit = True
                     if fighter.health <= 0:
                         fighter.killit = True
+                        self.missiles_exploded.append(vectors.norm(vectors.sub_vec(fighter.pos,self.player.pos)))
                         self.explosions.append(self.get_exp(fighter.pos))
 
         if self.player.live:
@@ -351,6 +358,7 @@ class Game:
                     self.playerhit = True
                     if self.player.health <= 0:
                         self.player.health = 0
+                        self.missiles_exploded.append(0)
                         self.explosions.append(self.get_exp(self.player.pos))
             for b in hitted_bullets:
                 b.kill()
@@ -440,7 +448,10 @@ class Game:
         if self.player.speed >= 320 and self.player.speed <= 324 and self.player.live:
 
             self.sounds.mBooms()
-
+        if len(self.missiles_exploded )>0:
+            a = self.missiles_exploded[0]
+            self.missiles_exploded.pop(0)
+            self.sounds.missileExplosion(a)
 
         if self.shoot and self.player.live:
 
