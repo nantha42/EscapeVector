@@ -28,6 +28,7 @@ class Game:
         self.mouse_clicked = False
         self.quit = False
         self.mouse_pos = (0, 0)
+        self.pressed_escape = False
         self.turn_right = False
         self.turn_left = False
         self.turbo = False
@@ -114,6 +115,10 @@ class Game:
 
                 if event.key == py.K_j:
                     self.slowtime = True
+
+                if event.key == py.K_ESCAPE:
+                    self.pressed_escape = True
+                    print("Escape")
 
             if event.type == py.KEYUP:
                 if event.key == py.K_a:
@@ -292,7 +297,7 @@ class Game:
                 if py.sprite.collide_mask(missile,fighter):
                     missile.killit = True
                     self.explosions.append(self.get_exp(missile.pos))
-                    fighter.killit = True
+                    fighter.health-= 10
 
         if self.player.live:
             for ship in self.fighters.sprites():
@@ -391,7 +396,7 @@ class Game:
 
     def update(self):
 
-        if self.menu_system.state == "start":
+        if self.menu_system.state == "start" and not self.pressed_escape:
             if self.slowtime:
                 if self.slowvalue > 0.3:
                     self.slowvalue -= 0.04
@@ -426,7 +431,8 @@ class Game:
                 self.player.live = False
             self.playSounds()
         else:
-            self.menu_system.update(py.mouse.get_pos(),self.mouse_clicked)
+            self.menu_system.update(py.mouse.get_pos(),self.mouse_clicked,self.pressed_escape)
+            self.pressed_escape = False
         py.display.update()
 
     def playSounds(self):

@@ -1,0 +1,18 @@
+{
+  "Level1": {
+    "fighters": 1,
+    "Ejets": 0
+  },
+  "Level2": {
+    "fighters": 2,
+    "Ejets": 0
+  },
+  "Level3": {
+    "fighters": 2,
+    "Ejets": 1
+  },
+  "Level4": {
+    "fighters": 2,
+
+  }
+}

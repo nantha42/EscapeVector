@@ -81,6 +81,8 @@ class Fighter(py.sprite.Sprite, object.Object):
             self.slowdown = False
 
     def update(self, playerpos, speed, slowvalue, player_live):
+        if self.health <= 0:
+            self.killit = True
         missile_attack = False
         shooting = False
         direc = self.sub_vec(playerpos, self.pos)

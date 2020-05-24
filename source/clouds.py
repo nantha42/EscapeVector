@@ -2,6 +2,7 @@ import pygame as py
 import math
 import vectors
 import config
+import random
 
 class Clouds:
     def __init__(self):
@@ -26,7 +27,7 @@ class Clouds:
 
         i = math.fabs(qx+qy)%13
         xys = [[qx*self.scale, qy*self.scale, i]]
-        print(qx,qy)
+
 
         lqx = qx-1
         lqy = qy
@@ -70,7 +71,10 @@ class Clouds:
 
         for xy in xys:
             ind = int(xy[2])
-            g = vectors.sub_vec([xy[0],xy[1]],pos)
-            g = vectors.add_vec(g,[config.screen_width/2,config.screen_height/2])
-            g = vectors.ret_int(g)
-            win.blit(self.cloud_imgs[ind],g)
+            random.seed(xy[0]*xy[1]+xy[1])
+            c = random.randint(0,1)
+            if c==1:
+                g = vectors.sub_vec([xy[0],xy[1]],pos)
+                g = vectors.add_vec(g,[config.screen_width/2,config.screen_height/2])
+                g = vectors.ret_int(g)
+                win.blit(self.cloud_imgs[ind],g)
