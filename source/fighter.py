@@ -94,7 +94,7 @@ class Fighter(py.sprite.Sprite, object.Object):
             shooting = True
 
         self.slowvalue = slowvalue
-        self.frame = (self.frame + 1) % 5
+        self.frame = (self.frame + 1) % len(self.imgs)
 
         if not player_live:
             self.shoot = False
@@ -125,34 +125,6 @@ class Fighter(py.sprite.Sprite, object.Object):
                 else:
                     self.noactiontime += 1
 
-                # ratio = (speed / config.normal_speed)
-                # if speed > config.normal_speed:
-                #     self.speed = config.normal_speed
-                #
-                # elif 180 < speed < config.normal_speed:
-                #     self.speed = speed
-                # else:
-                #     self.speed = 200
-                # if (config.missile_speed * ratio < 50):
-                #     self.speed = 80
-                # else:
-                #     self.speed = config.missile_speed * ratio
-                # if len(self.otherFighters.sprites()) > 1:
-                #     for fighter in self.otherFighters.sprites():
-                #         if fighter != self:
-                #             dis = self.norm(self.sub_vec(self.pos, fighter.pos))
-                #             if (dis > 120):
-                #                 rot_dir = self.sub_vec(playerpos, self.pos)
-                #                 v_turn = self.unit(self.sub_vec(rot_dir, self.v))
-                #                 v_turn = self.multiply(self.slowvalue, v_turn)
-                #                 t1 = self.multiply(self.speed, self.v)
-                #                 t2 = self.multiply(self.turn_speed, v_turn)
-                #                 # print(t1,"----",t2)
-                #                 self.v = self.add_vec(t1, t2)
-                #             else:
-                #                 self.v = fighter.v
-                # else:
-
                 if self.slowdown:
                     self.speed = 200
                 else:
@@ -172,10 +144,8 @@ class Fighter(py.sprite.Sprite, object.Object):
                 if (i.size >= config.particle_expansion_size):
                     self.particle_system.particles.remove(i)
 
-        # print("1  ",self.v)
+
         self.v = self.unit(self.v)
-        # print("2  ",self.v)
-        # print("Speed",self.speed)
         self.pos = self.add_vec(self.pos, self.multiply(self.speed * config.dt * slowvalue, self.v))
         if not self.killit:
             self.particle_system.add_particle(self.pos)
@@ -184,3 +154,77 @@ class Fighter(py.sprite.Sprite, object.Object):
         self.rect.centerx = self.renderpos[0]
         self.rect.centery = self.renderpos[1]
         self.angle = self.calculate_angle(self.v)
+
+class EmpFighter(Fighter):
+    def __init__(self):
+        Fighter.__init__(self)
+        self.imgs = [py.image.load("../images/empjet" + str(x) + ".png") for x in range(1, 5)]
+        self.active_emp = None
+
+    def update(self, playerpos, speed, slowvalue, player_live):
+        if self.health <= 0:
+            self.killit = True
+        missile_attack = False
+        shoot_emp = False
+        direc = self.sub_vec(playerpos, self.pos)
+        dis = self.norm(direc)
+
+        if dis > 1500 or self.noactiontime > 70:
+            pass
+        else:
+            shoot_emp = True
+
+        self.slowvalue = slowvalue
+        self.frame = (self.frame + 1) % len(self.imgs)
+
+        if not player_live:
+            self.shoot = False
+        if not self.killit:
+            if player_live:
+                # if missile_attack:
+                #     self.noactiontime = 0
+                    # if (len(
+                    #         self.launched_missiles.sprites()) < config.launch_missiles_limit and self.total_missiles > 0 and self.launch_time > config.launch_time):
+                    #     # missile1 = missile.Missile()
+                        # missile1.pos = list(self.pos)
+                        # self.launched_missiles.add(missile1)
+                        # self.launch_time = 0
+                        # self.total_missiles -= 1
+                    # self.launch_time += 1 * self.slowvalue
+                if shoot_emp:
+                    ang = math.degrees(self.angle_2vec(self.v, direc))
+                    self.noactiontime = 0
+                    if ang < 10:
+                        self.shoot = True
+                    else:
+                        self.shoot = False
+                else:
+                    self.noactiontime += 1
+                if self.slowdown:
+                    self.speed = 200
+                else:
+                    self.speed = config.fighter_speed
+                rot_dir = self.sub_vec(playerpos, self.pos)
+                v_turn = self.unit(self.sub_vec(rot_dir, self.v))
+                v_turn = self.multiply(self.slowvalue, v_turn)
+                t1 = self.multiply(self.speed, self.v)
+                t2 = self.multiply(self.turn_speed, v_turn)
+
+                if not self.slowdown:
+                    self.v = self.add_vec(t1, t2)
+        else:
+            self.kill()
+            for i in self.particle_system.particles:
+                if (i.size >= config.particle_expansion_size):
+                    self.particle_system.particles.remove(i)
+
+        self.v = self.unit(self.v)
+        self.pos = self.add_vec(self.pos, self.multiply(self.speed * config.dt * slowvalue, self.v))
+        if not self.killit:
+            self.particle_system.add_particle(self.pos)
+        self.rot_center()
+        self.renderPosition(playerpos)
+        self.rect.centerx = self.renderpos[0]
+        self.rect.centery = self.renderpos[1]
+        self.angle = self.calculate_angle(self.v)
+

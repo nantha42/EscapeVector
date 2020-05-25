@@ -13,6 +13,7 @@ import time
 import brain
 import menu
 import clouds
+import emp
 
 
 class Game:
@@ -42,32 +43,33 @@ class Game:
         self.explode = explosion.Explosion()
         self.player.pos = [500, 0]
         self.minimap = minimap.Minimap()
-        self.nfighters = 3
+        self.nfighters = 0
+        self.nempfighters = 1
         self.missiles_exploded = []
+
+
+
         self.fighters = py.sprite.Group()
         self.missiles = py.sprite.Group()
+
+        self.emps = py.sprite.Group()
+
         for i in range(self.nfighters):
             figh = fighter.Fighter()
             figh.launched_missiles = self.missiles
             self.fighters.add(figh)
             figh.otherFighters = self.fighters
-            figh.pos = [i*-400,i*231]
+            figh.pos = [(i+1)*-400,(i+1)*231]
 
-        # self.fighter = fighter.Fighter()
-        # self.fighter1 = fighter.Fighter()
-        # self.fighter2 = fighter.Fighter()
-
+        for i in range(self.nempfighters):
+            figh = fighter.EmpFighter()
+            self.fighters.add(figh)
+            figh.active_emp = self.emps
+            figh.otherFighters = self.fighters
+            figh.pos = [(i+1)*-800,(i+1)*400]
 
 
         self.slowvalue = 1
-        # self.fighter.launched_missiles = self.missiles
-        # self.fighter1.launched_missiles = self.missiles
-        # self.fighter.pos = [000.0, 0]
-        # self.fighter1.pos = [700.0, 500]
-        # self.fighters.add(self.fighter)
-        # self.fighters.add(self.fighter1)
-        # self.fighter.otherFighters = self.fighters
-        # self.fighter1.otherFighters = self.fighters
         self.bullets = bullet.BulletsSystem()
         self.enemiesbullets = bullet.BulletsSystem()
         self.shoot = False
@@ -183,9 +185,15 @@ class Game:
             self.draw_fighter_health()
             self.draw_clouds()
             self.draw_hud()
+            # self.draw_emps()
             self.win.blit(self.minimap.image, (30, config.screen_height - 128))
         else:
             self.menu_system.draw(self.win)
+
+    def draw_emps(self):
+        for emp in self.emps.sprites():
+            self.win.blit(emp.image,emp.rect)
+
     def draw_clouds(self):
         self.clouds.draw(self.win,self.player.pos)
 
@@ -431,12 +439,17 @@ class Game:
             self.detect_collisions()
             self.bullets.update(self.slowvalue)
 
-            for fighter in self.fighters.sprites():
-                if fighter.shoot:
-                    self.enemiesbullets.add_bullet(fighter.pos, fighter.angle + random.randint(-2, 2), fighter.angle)
+            for f in self.fighters.sprites():
+                if f.shoot:
+                    if isinstance(f,fighter.EmpFighter):
+                        self.emps.add(emp.Emp(f.v))
+                    else:
+                        self.enemiesbullets.add_bullet(f.pos, f.angle + random.randint(-2, 2), f.angle)
             self.enemiesbullets.update(self.slowvalue)
+            self.emps.update(self.player.pos,self.slowvalue)
             if self.player.health<=0:
                 self.player.live = False
+
             self.playSounds()
         else:
             self.menu_system.update(py.mouse.get_pos(),self.mouse_clicked,self.pressed_escape)
