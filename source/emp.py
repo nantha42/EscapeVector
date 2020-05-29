@@ -5,27 +5,36 @@ import math
 
 class Emp(object.Object,py.sprite.Sprite):
 
-    def __init__(self,direction):
+    def __init__(self,direction,pos):
         object.Object.__init__(self)
         py.sprite.Sprite.__init__(self)
-        self.life = 1000
-        self.image = py.Surface.convert_alpha(py.Surface((90,90)))
-        self.image.fill((0,0,0,0))
-        self.rect = self.image.get_rect()
+        self.life = 100
+
+        self.pos = list(pos)
+
         self.direction = list(self.unit(direction))
         self.speed = config.emp_speed
-        self.angle = self.calculate_angle(self.direction)-90
+        self.angle = -self.calculate_angle(self.direction)
         self.v = self.multiply(self.speed, self.direction)
-        r = [self.pos[0]-100,self.pos[1]-100]
-        py.draw.arc(self.image,(45,30,255),[r[0],r[1],200,200],math.radians(self.angle-60),math.radians(self.angle+60),8)
-        py.draw.circle(self.image,(200,200,200,255),r,10,3)
+        self.image_width = 90
+        self.image_height = 90
+        # r = [self.pos[0]-100,self.pos[1]-100]
+
+        self.image = py.Surface.convert_alpha(py.Surface((90,90)))
+        self.image.fill((0,0,0,0))
+        py.draw.arc(self.image, (50, 50, 205), [0, 0, 90, 90], math.radians(self.angle - 60),
+                    math.radians(self.angle + 60), 8)
+        self.rect = self.image.get_rect()
 
     def update(self,playerpos,slowvalue):
-        if self.life <0:
+        if self.life <=0:
+            print("killed")
             self.kill()
         else:
             self.life -= slowvalue*1
-        self.pos = self.add_vec(self.pos, self.multiply(self.speed * config.dt * slowvalue, self.v))
+            # print(self.life)
+        self.v = self.multiply(self.speed, self.direction)
+        self.pos = self.add_vec(self.pos, self.multiply(config.dt * slowvalue, self.v))
         self.renderPosition(playerpos)
-        self.rect.x = self.renderpos[0]
-        self.rect.y = self.renderpos[1]
+        self.rect.x = self.renderpos[0]-45
+        self.rect.y = self.renderpos[1]-45

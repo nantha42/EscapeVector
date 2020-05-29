@@ -1,4 +1,3 @@
-
 from object import Object
 import particle
 import config
@@ -22,8 +21,10 @@ class Player(py.sprite.Sprite,Object):
         self.health = config.player_health
         self.live = True
         self.turbo = 100
+        self.emp_affected = False
         self.releasing_turbo = False
         self.slowvalue = 1
+        self.emp_duration = 0
 
         for i in range(6):
             self.imgs.append(py.image.load("../images/top"+str(i+1)+".png"))
@@ -118,9 +119,21 @@ class Player(py.sprite.Sprite,Object):
 
 
     def update(self,slowvalue):
+
+        if self.emp_affected == True:
+            self.emp_duration = 1000
+            self.emp_affected = False
+
         self.slowvalue = slowvalue
         r = math.radians(self.angle)
         dir = [math.cos(r),math.sin(r)]
+        if self.emp_duration>0:
+            self.emp_duration -= 10*slowvalue
+            print(self.emp_duration)
+
+
+        if self.emp_duration >0:
+            self.speed = 140
 
         self.v = self.add_vec(self.multiply(self.speed, self.v), self.multiply(self.turn_speed * 100, dir))
         self.v = self.unit(self.v)
@@ -139,7 +152,6 @@ class Player(py.sprite.Sprite,Object):
         self.rot_center()
         self.frame = (self.frame+1)%18
         #sounds
-
 
     def renderPosition(self):
         self.particle_system.renderPosition(self.pos)

@@ -181,16 +181,6 @@ class EmpFighter(Fighter):
             self.shoot = False
         if not self.killit:
             if player_live:
-                # if missile_attack:
-                #     self.noactiontime = 0
-                    # if (len(
-                    #         self.launched_missiles.sprites()) < config.launch_missiles_limit and self.total_missiles > 0 and self.launch_time > config.launch_time):
-                    #     # missile1 = missile.Missile()
-                        # missile1.pos = list(self.pos)
-                        # self.launched_missiles.add(missile1)
-                        # self.launch_time = 0
-                        # self.total_missiles -= 1
-                    # self.launch_time += 1 * self.slowvalue
                 if shoot_emp:
                     ang = math.degrees(self.angle_2vec(self.v, direc))
                     self.noactiontime = 0
@@ -227,4 +217,3 @@ class EmpFighter(Fighter):
         self.rect.centerx = self.renderpos[0]
         self.rect.centery = self.renderpos[1]
         self.angle = self.calculate_angle(self.v)
-

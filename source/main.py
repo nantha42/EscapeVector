@@ -66,7 +66,7 @@ class Game:
             self.fighters.add(figh)
             figh.active_emp = self.emps
             figh.otherFighters = self.fighters
-            figh.pos = [(i+1)*-800,(i+1)*400]
+            figh.pos = [(i+1)*-800,(i+1)*-400]
 
 
         self.slowvalue = 1
@@ -185,14 +185,13 @@ class Game:
             self.draw_fighter_health()
             self.draw_clouds()
             self.draw_hud()
-            # self.draw_emps()
+            self.draw_emps()
             self.win.blit(self.minimap.image, (30, config.screen_height - 128))
         else:
             self.menu_system.draw(self.win)
 
     def draw_emps(self):
-        for emp in self.emps.sprites():
-            self.win.blit(emp.image,emp.rect)
+        self.emps.draw(self.win)
 
     def draw_clouds(self):
         self.clouds.draw(self.win,self.player.pos)
@@ -371,6 +370,11 @@ class Game:
             for b in hitted_bullets:
                 b.kill()
 
+        for emp in self.emps.sprites():
+            if py.sprite.collide_mask(emp,self.player):
+                self.player.emp_affected = True
+                emp.kill()
+
     def draw_bullets(self):
         w = config.screen_width / 2
         h = config.screen_height / 2
@@ -430,8 +434,6 @@ class Game:
                     missile.killit = True
                     self.explosions.append(self.get_exp(missile.pos))
             all_sprites = []
-            # if self.fighter.killit == False:
-            #     all_sprites = [self.fighter]
             all_sprites.extend(self.missiles.sprites())
             all_sprites.extend(self.fighters.sprites())
             self.minimap.update(all_sprites, self.player)
@@ -441,15 +443,16 @@ class Game:
 
             for f in self.fighters.sprites():
                 if f.shoot:
+                    print(f.shoot)
                     if isinstance(f,fighter.EmpFighter):
-                        self.emps.add(emp.Emp(f.v))
+                        if(len(self.emps.sprites())==0):
+                            self.emps.add(emp.Emp(f.v,f.pos))
                     else:
                         self.enemiesbullets.add_bullet(f.pos, f.angle + random.randint(-2, 2), f.angle)
             self.enemiesbullets.update(self.slowvalue)
             self.emps.update(self.player.pos,self.slowvalue)
             if self.player.health<=0:
                 self.player.live = False
-
             self.playSounds()
         else:
             self.menu_system.update(py.mouse.get_pos(),self.mouse_clicked,self.pressed_escape)
@@ -459,7 +462,6 @@ class Game:
     def playSounds(self):
 
         if self.player.speed >= 320 and self.player.speed <= 324 and self.player.live:
-
             self.sounds.mBooms()
         if len(self.missiles_exploded )>0:
             a = self.missiles_exploded[0]
@@ -467,7 +469,6 @@ class Game:
             self.sounds.missileExplosion(a)
 
         if self.shoot and self.player.live:
-
             if self.slowtime:
                 now = time.time()
                 if now - self.player.shoottimer >= 0.1*1.5:
@@ -501,7 +502,6 @@ class Game:
             else:
                 self.sounds.mTicks(self.tickspeed)
 
-
         elif not self.slowtime:
             if self.tickspeed > self.tickhighspeed:
                 k = self.sounds.mTicks(self.tickspeed)
@@ -518,7 +518,6 @@ class Game:
         if self.fighterhit:
             self.sounds.mHit()
             self.fighterhit = False
-
 
     def run(self):
         avg = 0

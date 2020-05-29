@@ -32,6 +32,8 @@ class Object:
         mag_a = self.norm(a)
         mag_b = self.norm(b)
         t = dot / (mag_a * mag_b)
+        if(t>1):
+            return 0
         return math.acos(t)
 
     def renderPosition(self,ref,):

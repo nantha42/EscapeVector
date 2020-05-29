@@ -11,7 +11,7 @@ player_health = 500
 #fighter parameters
 fighter_speed = 300
 fighter_turn_speed = 15
-launch_missiles_limit = 5
+launch_missiles_limit = 3
 total_missiles = 100
 launch_time = 15
 
@@ -24,4 +24,4 @@ missile_fuel = 500
 particle_expansion_size = 20
 
 #emp
-emp_speed = 100
+emp_speed = 500
