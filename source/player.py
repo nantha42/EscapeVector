@@ -128,12 +128,14 @@ class Player(py.sprite.Sprite,Object):
         r = math.radians(self.angle)
         dir = [math.cos(r),math.sin(r)]
         if self.emp_duration>0:
-            self.emp_duration -= 10*slowvalue
+            self.emp_duration -= 3*slowvalue
             print(self.emp_duration)
 
-
         if self.emp_duration >0:
-            self.speed = 140
+            if self.speed > 160:
+                self.speed-= 1
+            else:
+                self.speed = 160
 
         self.v = self.add_vec(self.multiply(self.speed, self.v), self.multiply(self.turn_speed * 100, dir))
         self.v = self.unit(self.v)

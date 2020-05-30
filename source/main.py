@@ -39,35 +39,14 @@ class Game:
         self.slowduration = 10
         self.clock = py.time.Clock()
         self.hud_base = py.transform.scale(py.image.load("../images/hud.png"), (200, 200))
-        self.player = player.Player()
+
         self.explode = explosion.Explosion()
-        self.player.pos = [500, 0]
+
         self.minimap = minimap.Minimap()
-        self.nfighters = 0
-        self.nempfighters = 1
         self.missiles_exploded = []
-
-
-
         self.fighters = py.sprite.Group()
         self.missiles = py.sprite.Group()
-
         self.emps = py.sprite.Group()
-
-        for i in range(self.nfighters):
-            figh = fighter.Fighter()
-            figh.launched_missiles = self.missiles
-            self.fighters.add(figh)
-            figh.otherFighters = self.fighters
-            figh.pos = [(i+1)*-400,(i+1)*231]
-
-        for i in range(self.nempfighters):
-            figh = fighter.EmpFighter()
-            self.fighters.add(figh)
-            figh.active_emp = self.emps
-            figh.otherFighters = self.fighters
-            figh.pos = [(i+1)*-800,(i+1)*-400]
-
 
         self.slowvalue = 1
         self.bullets = bullet.BulletsSystem()
@@ -81,7 +60,7 @@ class Game:
         self.explosions = []
 
         self.dirty_rects = []
-
+        self.game_exists = False
         #######sounds#####
         self.sounds = sound.Sound()
         self.playerhit = False
@@ -90,6 +69,27 @@ class Game:
         self.tickhighspeed = 0.1
         self.tickspeedrate = 0.05
         self.tickspeed = 0.1
+
+    def initiate_game(self):
+        level = self.menu_system.level_selected
+        leveldata = self.menu_system.database.leve_loader.get_Level(level)
+
+        for i in range(leveldata[0]):
+            figh = fighter.Fighter()
+            figh.launched_missiles = self.missiles
+            self.fighters.add(figh)
+            figh.otherFighters = self.fighters
+            figh.pos = [(i+1)*-400,(i+1)*231]
+
+        for i in range(leveldata[1]):
+            figh = fighter.EmpFighter()
+            self.fighters.add(figh)
+            figh.active_emp = self.emps
+            figh.otherFighters = self.fighters
+            figh.pos = [(i+1)*-800,(i+1)*-400]
+
+        self.player = player.Player()
+        self.player.pos = [500, 0]
 
     def get_exp(self, pos):
         return [pos, 0, 10, 0, 10]
@@ -156,7 +156,7 @@ class Game:
                 self.mouse_clicked = False
 
     def draw(self):
-        if self.menu_system.state=="start":
+        if self.menu_system.state=="start" and self.game_exists:
             self.win.fill((0x8c, 0xbe, 0xd6))
             self.dirty_rects = []
             self.draw_bullets()
@@ -209,10 +209,8 @@ class Game:
                                           rect.w / 2, rect.h / 2))
                 if (exp[1] < 11):
                     img = self.explode.get_image(int(exp[1]))
-
                     self.win.blit(img, vectors.ret_int(pos))
                     exp[1] += .5 * self.slowvalue
-
                 newpos = vectors.ret_int([pos[0] + rect.w / 2, pos[1] + rect.h / 2])
                 # print(newpos)
                 if exp[4] > 1:
@@ -223,7 +221,6 @@ class Game:
                     exp[3] += 0.5 * self.slowvalue
                 exp[4] -= 0.7 * self.slowvalue
                 exp[2] += (30 - exp[3]) * self.slowvalue
-
             else:
                 expired.append(exp)
 
@@ -299,7 +296,7 @@ class Game:
                 self.player.damaging = True
                 if self.player.health <= 0:
                     self.explosions.append(self.get_exp(self.player.pos))
-                    # self.player.kill()
+
                     self.player.live = False
                     self.bullets.bullets.empty()
             for fighter in self.fighters.sprites():
@@ -326,7 +323,6 @@ class Game:
         hitted_bullets = []
         for i in range(len(group)):
             missile = group[i]
-            #missile missile collision
             for j in range(i, len(group)):
                 missileB = group[j]
                 if missile != missileB:
@@ -367,6 +363,7 @@ class Game:
                         self.player.health = 0
                         self.missiles_exploded.append(0)
                         self.explosions.append(self.get_exp(self.player.pos))
+
             for b in hitted_bullets:
                 b.kill()
 
@@ -414,9 +411,21 @@ class Game:
         else:
             self.player.stop_turb()
 
+    def check_level_completed(self):
+        if len(self.missiles.sprites())==0 and len(self.fighters.sprites())==0 and len(self.emps.sprites())==0 and len(self.enemiesbullets.bullets.sprites())==0 and len(self.explosions)==0:
+            if self.menu_system.database.levelunlocked == self.menu_system.level_selected:
+                self.menu_system.database.update_level()
+            self.menu_system.state = "level_finished"
+
     def update(self):
 
         if self.menu_system.state == "start" and not self.pressed_escape:
+            if not self.game_exists:
+                self.initiate_game()
+                self.game_exists = True
+
+            self.check_level_completed()
+
             if self.slowtime:
                 if self.slowvalue > 0.3:
                     self.slowvalue -= 0.04
@@ -455,15 +464,22 @@ class Game:
                 self.player.live = False
             self.playSounds()
         else:
+            if self.game_exists and not self.pressed_escape and self.menu_system.option_selected!="gamemenu" and self:
+                print(self.menu_system.state)
+                self.fighters.empty()
+                self.missiles.empty()
+                self.bullets.bullets.empty()
+                self.enemiesbullets.bullets.empty()
+                self.game_exists = False
+
             self.menu_system.update(py.mouse.get_pos(),self.mouse_clicked,self.pressed_escape)
             self.pressed_escape = False
         py.display.update()
 
     def playSounds(self):
-
         if self.player.speed >= 320 and self.player.speed <= 324 and self.player.live:
             self.sounds.mBooms()
-        if len(self.missiles_exploded )>0:
+        if len(self.missiles_exploded)>0:
             a = self.missiles_exploded[0]
             self.missiles_exploded.pop(0)
             self.sounds.missileExplosion(a)
@@ -493,7 +509,6 @@ class Game:
                         self.sounds.mShoots()
                         fighter.shoottimer = now
 
-
         if self.slowtime:
             if self.tickspeed < self.ticklowspeed:
                 j = self.sounds.mTicks(self.tickspeed)
@@ -511,6 +526,7 @@ class Game:
                         self.tickspeedrate -= 0.01
                     else:
                         self.tickspeedrate = 0.1
+
         if self.playerhit:
             self.sounds.mHit()
             self.playerhit = False
@@ -520,13 +536,11 @@ class Game:
             self.fighterhit = False
 
     def run(self):
-        avg = 0
-        count = 0
         self.sounds.playTheme()
         while self.menu_system.state != "quitgame":
             self.event_handler()
-            self.draw()
             self.update()
+            self.draw()
             self.clock.tick(40)
 
 if __name__ == '__main__':

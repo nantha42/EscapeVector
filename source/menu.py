@@ -28,6 +28,8 @@ class Menu:
         self.smfontsystem = font.SmallFontSystem()
         self.option_selected = "mainmenu"
         self.state = "mainmenu"
+
+        self.level_selected = -1
         self.current_option_texts = []
         self.menu_surface = py.Surface((250,300))
         self.optionon = -1
@@ -118,8 +120,6 @@ class Menu:
                 self.menu_surface.blit(small_surface,small_surface_rect)
                 posx += 150
 
-            # tmp = self.menu_surface.get_rect()
-            # print(tmp.x,tmp.y)
             self.optionon = -1
 
             back_surface = py.Surface.convert_alpha(py.Surface((50,30)))
@@ -138,15 +138,13 @@ class Menu:
             self.menu_surface.blit(back_surface,bsr)
             win.blit(self.menu_surface, (250, 200))
 
-
-
-
     def navigate(self,i):
         o = self.current_option_texts[i][0]
 
         if self.option_selected == "mainmenu":
             if o == "continue":
                 self.state = "start"
+                self.level_selected = self.database.levelunlocked
             if o == "select level":
                 self.option_selected = "levelmenu"
             if o == "quit":
@@ -163,17 +161,32 @@ class Menu:
         if self.option_selected == "levelmenu":
             if o == "Level 1":
                 self.state = "start"
-            if o == "Level 2":
+                self.level_selected = 1
+
+            elif o == "Level 2":
+                if self.database.levelunlocked>=2:
+                    self.state = "start"
+                    self.level_selected = 2
+
+            elif o == "Level 3":
+                if self.database.levelunlocked>=3:
+                    self.state = "start"
+                    self.level_selected = 3
                 pass
-            if o == "Level 3":
+            elif o == "Level 4":
+                if self.database.levelunlocked>=4:
+                    self.state = "start"
+                    self.level_selected = 4
                 pass
-            if o == "Level 4":
-                pass
-            if o == "Level 5":
+            elif o == "Level 5":
+                if self.database.levelunlocked>=5:
+                    self.state = "start"
+                    self.level_selected = 5
                 pass
 
             if o == "back":
                 self.option_selected = "mainmenu"
+
 
         if self.option_selected == "difficultymenu":
             if o == "easy":

@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import levelloader
 
 class Database:
     def __init__(self):
@@ -7,6 +8,7 @@ class Database:
         self.cur = None
         self.con = None
         self.levelunlocked = -1
+        self.leve_loader = levelloader.LevelLoader()
         if not os.path.isfile("../db"):
             self.con = sqlite3.connect("../db")
             self.cur = self.con.cursor()
@@ -17,7 +19,6 @@ class Database:
             self.cur.execute("insert into levels(id,lastlevel) values(?,?)",(1,1))
             j = self.cur.execute("select * from levels")
             self.con.commit()
-
             self.levelunlocked = 1
         else:
             self.con = sqlite3.connect("../db")
@@ -32,7 +33,7 @@ class Database:
         self.cur.execute("select * from levels")
 
 
-    def updateLevel(self,i):
+    def update_level(self):
         self.cur.execute("select * from levels")
         k = self.cur.fetchall()[0][1]
         if k < 5:
@@ -41,7 +42,12 @@ class Database:
         self.levelunlocked = self.cur.fetchall()[0][1]
         self.con.commit()
 
+    def get_level(self,i):
+        if self.levelunlocked <= i:
+            return self.leve_loader.get_Level(i)
 
+        else:
+            return "Locked"
 
 
 if __name__ == '__main__':

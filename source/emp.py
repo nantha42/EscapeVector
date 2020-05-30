@@ -9,9 +9,7 @@ class Emp(object.Object,py.sprite.Sprite):
         object.Object.__init__(self)
         py.sprite.Sprite.__init__(self)
         self.life = 100
-
         self.pos = list(pos)
-
         self.direction = list(self.unit(direction))
         self.speed = config.emp_speed
         self.angle = -self.calculate_angle(self.direction)
@@ -32,6 +30,8 @@ class Emp(object.Object,py.sprite.Sprite):
             self.kill()
         else:
             self.life -= slowvalue*1
+        print(self.life)
+
             # print(self.life)
         self.v = self.multiply(self.speed, self.direction)
         self.pos = self.add_vec(self.pos, self.multiply(config.dt * slowvalue, self.v))
