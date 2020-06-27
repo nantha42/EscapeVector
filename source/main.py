@@ -14,7 +14,7 @@ import brain
 import menu
 import clouds
 import emp
-
+import particle
 
 class Game:
     def __init__(self):
@@ -47,17 +47,23 @@ class Game:
         self.fighters = py.sprite.Group()
         self.missiles = py.sprite.Group()
         self.emps = py.sprite.Group()
-
+        self.turn_screen_red = False
         self.slowvalue = 1
         self.bullets = bullet.BulletsSystem()
         self.enemiesbullets = bullet.BulletsSystem()
         self.shoot = False
         self.ai = brain.Brain()
         self.ai.fighters = self.fighters.sprites()
+        self.sparkSystem = particle.SparkSystem()
         self.explosions_size = 10
         self.initial_explosion = []
         self.clouds = clouds.Clouds()
         self.explosions = []
+
+        self.screen_r = 0x8c
+        self.screen_g = 0xbe
+        self.screen_b = 0xd6
+        self.turn_screen_normal = True
 
         self.dirty_rects = []
         self.game_exists = False
@@ -121,7 +127,7 @@ class Game:
 
                 if event.key == py.K_ESCAPE:
                     self.pressed_escape = True
-                    print("Escape")
+                    # print("Escape")
 
             if event.type == py.KEYUP:
                 if event.key == py.K_a:
@@ -157,15 +163,42 @@ class Game:
 
     def draw(self):
         if self.menu_system.state=="start" and self.game_exists:
-            self.win.fill((0x8c, 0xbe, 0xd6))
+            #print(self.turn_screen_red)
+            if not self.turn_screen_red:
+                self.win.fill((0x8c, 0xbe, 0xd6))
+            else:
+                self.win.fill((self.screen_r,self.screen_g,self.screen_b))
+                color_change_perstep = 20
+                if(self.screen_r+color_change_perstep<250 and not self.turn_screen_normal):
+                    self.screen_r+=color_change_perstep
+                    self.screen_b-=color_change_perstep
+                    self.screen_g-=color_change_perstep
+
+                else:
+                    self.turn_screen_normal = True
+
+                if(self.turn_screen_normal):
+                    if(self.screen_r>140):
+                        self.screen_r -= color_change_perstep
+                        self.screen_b += color_change_perstep
+                        self.screen_g += color_change_perstep
+                    else:
+                        self.turn_screen_red = False
             self.dirty_rects = []
             self.draw_bullets()
+
             if self.player.health > 0:
                 self.win.blit(self.player.image, self.player.rect)
 
             self.missiles.draw(self.win)
             self.fighters.draw(self.win)
 
+            # px = py.PixelArray(self.win)
+            # for i in range(100):
+            #     for j in range(100):
+            #         px[i,j] = (255,0,0)
+            # px.close()
+            #
             for missile in self.missiles.sprites():
                 for i in missile.particle_system.particles:
                     if (i.size < config.particle_expansion_size):
@@ -186,9 +219,26 @@ class Game:
             self.draw_clouds()
             self.draw_hud()
             self.draw_emps()
+            self.draw_sparks()
+
             self.win.blit(self.minimap.image, (30, config.screen_height - 128))
         else:
             self.menu_system.draw(self.win)
+
+    def draw_sparks(self):
+        #pxarray = py.PixelArray(self.win)
+        for p in self.sparkSystem.particles:
+            x,y = p[0][0]-self.player.pos[0]+config.screen_width/2,p[0][1]-self.player.pos[1]+config.screen_height/2
+            if(random.randint(0,1)):
+                self.win.fill(p[2],((x,y),(1,4)))
+            else:
+                self.win.fill(p[2], ((x, y), (4, 1)))
+            #py.draw.circle(self.win,p[2],(x,y),1,1)
+            #pxarray[x,y] = p[2]
+            #print(x,y,p[2])
+        #pxarray.close()
+        # print(len(self.sparkSystem.particles))
+        #print(pxarray)
 
     def draw_emps(self):
         self.emps.draw(self.win)
@@ -294,11 +344,14 @@ class Game:
                 self.explosions.append(self.get_exp(missile.pos))
                 self.player.health -= 30
                 self.player.damaging = True
+                self.turn_screen_red = True
+                self.turn_screen_normal = False
+
                 if self.player.health <= 0:
                     self.explosions.append(self.get_exp(self.player.pos))
-
                     self.player.live = False
                     self.bullets.bullets.empty()
+
             for fighter in self.fighters.sprites():
                 if py.sprite.collide_mask(missile,fighter):
                     missile.killit = True
@@ -306,6 +359,7 @@ class Game:
                     self.explosions.append(self.get_exp(missile.pos))
                     fighter.health-= 10
 
+        #enemy player collision
         if self.player.live:
             for ship in self.fighters.sprites():
                 j = py.sprite.collide_mask(ship, self.player)
@@ -321,6 +375,7 @@ class Game:
         bulls = self.bullets.bullets.sprites()
         ebulls = self.enemiesbullets.bullets.sprites()
         hitted_bullets = []
+        #missile missile collision
         for i in range(len(group)):
             missile = group[i]
             for j in range(i, len(group)):
@@ -348,6 +403,7 @@ class Game:
                     fighter.health -= 10
                     hitted_bullets.append(b)
                     self.fighterhit = True
+                    self.sparkSystem.add_particles(b.pos,fighter.v,25)
                     if fighter.health <= 0:
                         fighter.killit = True
                         self.missiles_exploded.append(vectors.norm(vectors.sub_vec(fighter.pos,self.player.pos)))
@@ -357,6 +413,9 @@ class Game:
             for b in ebulls:
                 if py.sprite.collide_mask(b, self.player):
                     self.player.health -= 10
+                    self.sparkSystem.add_particles(b.pos,b.dir,20)
+                    self.turn_screen_red = True
+                    self.turn_screen_normal = False
                     hitted_bullets.append(b)
                     self.playerhit = True
                     if self.player.health <= 0:
@@ -452,7 +511,7 @@ class Game:
 
             for f in self.fighters.sprites():
                 if f.shoot:
-                    print(f.shoot)
+                    # print(f.shoot)
                     if isinstance(f,fighter.EmpFighter):
                         if(len(self.emps.sprites())==0):
                             self.emps.add(emp.Emp(f.v,f.pos))
@@ -460,12 +519,13 @@ class Game:
                         self.enemiesbullets.add_bullet(f.pos, f.angle + random.randint(-2, 2), f.angle)
             self.enemiesbullets.update(self.slowvalue)
             self.emps.update(self.player.pos,self.slowvalue)
+            self.sparkSystem.update(self.slowvalue)
             if self.player.health<=0:
                 self.player.live = False
             self.playSounds()
         else:
             if self.game_exists and not self.pressed_escape and self.menu_system.option_selected!="gamemenu" and self:
-                print(self.menu_system.state)
+                # print(self.menu_system.state)
                 self.fighters.empty()
                 self.missiles.empty()
                 self.bullets.bullets.empty()
@@ -496,18 +556,19 @@ class Game:
                     self.sounds.mShoots()
                     self.player.shoottimer = now
 
-        for fighter in self.fighters.sprites():
-            if fighter.shoot:
+        for fighte in self.fighters.sprites():
+
+            if fighte.shoot and not isinstance(fighte,fighter.EmpFighter):
                 if self.slowtime:
                     now = time.time()
-                    if now - fighter.shoottimer >= 0.1 * 1.5:
+                    if now - fighte.shoottimer >= 0.1 * 1.5:
                         self.sounds.mShoots()
-                        fighter.shoottimer = now
+                        fighte.shoottimer = now
                 else:
                     now = time.time()
-                    if now - fighter.shoottimer >= 0.1:
+                    if now - fighte.shoottimer >= 0.1:
                         self.sounds.mShoots()
-                        fighter.shoottimer = now
+                        fighte.shoottimer = now
 
         if self.slowtime:
             if self.tickspeed < self.ticklowspeed:
@@ -541,7 +602,7 @@ class Game:
             self.event_handler()
             self.update()
             self.draw()
-            self.clock.tick(40)
+            self.clock.tick(30)
 
 if __name__ == '__main__':
     g = Game()

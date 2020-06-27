@@ -1,8 +1,22 @@
 import vectors
-
+import random
 class Brain:
     def __init__(self):
         self.fighters = []
+        self.choosen = False
+        self.choosen_fighter = None
+
+    def control1(self,player):
+        if not self.choosen:
+            r = random.randint(0,len(self.fighters))
+            self.choosen_fighter = self.fighters[r]
+            self.choosen = True
+
+        for i in range(len(self.fighters)):
+            if self.choosen_fighter != self.fighters[i]:
+                f = self.fighters[i]
+                f.receive_signal(["maintaindistance"])
+
 
     def control(self,player):
         for i in range(len(self.fighters)):

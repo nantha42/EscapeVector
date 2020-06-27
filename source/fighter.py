@@ -54,7 +54,6 @@ class Fighter(py.sprite.Sprite, object.Object):
         rad2 = math.acos(self.dot(self.unit(self.v), [0, 1]))
         self.angle = math.degrees(rad)
         self.angle2 = math.degrees(rad2)
-
         if self.angle2 >= 90:
             rot_image = py.transform.rotate(self.permimage, -270 - (180 - self.angle))
         else:
@@ -79,6 +78,11 @@ class Fighter(py.sprite.Sprite, object.Object):
 
         if signal[0] == "noslowdown":
             self.slowdown = False
+
+
+        if signal[0] == "maintaindistance":
+            self.maintain_distance = True
+
 
     def update(self, playerpos, speed, slowvalue, player_live):
         if self.health <= 0:

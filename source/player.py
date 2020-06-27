@@ -84,7 +84,7 @@ class Player(py.sprite.Sprite,Object):
 
     def release_turbo(self):
 
-        if self.turbo>0.5:
+        if self.turbo>0.5 and self.emp_duration==0:
             self.releasing_turbo = True
             self.turbo-=0.5*self.slowvalue
             if self.speed < config.normal_speed+200:
@@ -129,7 +129,9 @@ class Player(py.sprite.Sprite,Object):
         dir = [math.cos(r),math.sin(r)]
         if self.emp_duration>0:
             self.emp_duration -= 3*slowvalue
-            print(self.emp_duration)
+            #print(self.emp_duration)
+        else:
+            self.emp_duration = 0
 
         if self.emp_duration >0:
             if self.speed > 160:
