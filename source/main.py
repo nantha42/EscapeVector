@@ -193,12 +193,6 @@ class Game:
             self.missiles.draw(self.win)
             self.fighters.draw(self.win)
 
-            # px = py.PixelArray(self.win)
-            # for i in range(100):
-            #     for j in range(100):
-            #         px[i,j] = (255,0,0)
-            # px.close()
-            #
             for missile in self.missiles.sprites():
                 for i in missile.particle_system.particles:
                     if (i.size < config.particle_expansion_size):
@@ -210,8 +204,6 @@ class Game:
                 if (i.size < config.particle_expansion_size):
                     py.draw.circle(self.win, (100, 100, 100), vectors.ret_int(i.renderpos), int(i.size), int(i.size))
                     i.size += .1
-            # for i in self.player.vParticle_system.particles:
-            #     py.draw.circle(self.win, (255, 255, 255), vectors.ret_int(i.renderpos), 1, 1)
 
             self.draw_explosions()
             self.draw_missile_fuel_indicator()
@@ -226,19 +218,12 @@ class Game:
             self.menu_system.draw(self.win)
 
     def draw_sparks(self):
-        #pxarray = py.PixelArray(self.win)
         for p in self.sparkSystem.particles:
             x,y = p[0][0]-self.player.pos[0]+config.screen_width/2,p[0][1]-self.player.pos[1]+config.screen_height/2
             if(random.randint(0,1)):
                 self.win.fill(p[2],((x,y),(1,4)))
             else:
                 self.win.fill(p[2], ((x, y), (4, 1)))
-            #py.draw.circle(self.win,p[2],(x,y),1,1)
-            #pxarray[x,y] = p[2]
-            #print(x,y,p[2])
-        #pxarray.close()
-        # print(len(self.sparkSystem.particles))
-        #print(pxarray)
 
     def draw_emps(self):
         self.emps.draw(self.win)

@@ -34,7 +34,7 @@ class SparkSystem:
 
             a1 = int(angle - 175)%360
             a2 = int(angle + 175)%360
-            print(min(a1%360,a2%360),max(a1%360,a2%360))
+            #print(min(a1%360,a2%360),max(a1%360,a2%360))
             a = math.radians(random.randint(min(a1, a2), max(a1, a2)))
             np_angle = math.radians(random.randint(min(a1, a2), max(a1, a2)))
             newpoint = [math.cos(np_angle) * d, math.sin(np_angle) * d]
@@ -108,4 +108,4 @@ class VelocityParticleSystem:
 
 if __name__ == '__main__':
     j = object.Object()
-    print(j.calculate_angle([23,34]))
+    # print(j.calculate_angle([23,34]))

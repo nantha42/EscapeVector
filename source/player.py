@@ -114,7 +114,8 @@ class Player(py.sprite.Sprite,Object):
             self.speed -= 3*self.slowvalue
 
     def throttleDown(self):
-        if self.speed > config.normal_speed/3 and self.releasing_turbo == False:
+        print(self.speed,config.normal_speed)
+        if self.speed > config.normal_speed and self.releasing_turbo == False:
             self.speed-= 3*self.slowvalue
 
 
@@ -139,7 +140,7 @@ class Player(py.sprite.Sprite,Object):
             else:
                 self.speed = 160
 
-        self.v = self.add_vec(self.multiply(self.speed, self.v), self.multiply(self.turn_speed * 100, dir))
+        self.v = self.add_vec(self.multiply(self.speed, self.v), self.multiply(self.turn_speed * 120, dir))
         self.v = self.unit(self.v)
         self.pos = self.add_vec(self.pos,self.multiply(self.speed*config.dt*slowvalue,self.v))
 
