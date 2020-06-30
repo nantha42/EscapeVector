@@ -14,7 +14,7 @@ class Clouds:
             self.cloud_imgs.append(img)
 
 
-    def draw(self,win,pos):
+    def draw(self,win,pos,camoff):
 
         if pos[0] < 0:
             qx = int(pos[0]/self.scale -1)
@@ -75,6 +75,6 @@ class Clouds:
             c = random.randint(0,1)
             if c==1:
                 g = vectors.sub_vec([xy[0],xy[1]],pos)
-                g = vectors.add_vec(g,[config.screen_width/2,config.screen_height/2])
+                g = vectors.add_vec(g,[config.screen_width/2+camoff[0],config.screen_height/2+camoff[1]])
                 g = vectors.ret_int(g)
                 win.blit(self.cloud_imgs[ind],g)

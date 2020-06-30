@@ -25,6 +25,7 @@ class Player(py.sprite.Sprite,Object):
         self.releasing_turbo = False
         self.slowvalue = 1
         self.emp_duration = 0
+        self.fuel = 500
 
         for i in range(6):
             self.imgs.append(py.image.load("../images/top"+str(i+1)+".png"))
@@ -81,7 +82,6 @@ class Player(py.sprite.Sprite,Object):
         self.rect.centerx = config.screen_width/2
         self.rect.centery = config.screen_height/2
 
-
     def release_turbo(self):
 
         if self.turbo>0.5 and self.emp_duration==0:
@@ -114,13 +114,12 @@ class Player(py.sprite.Sprite,Object):
             self.speed -= 3*self.slowvalue
 
     def throttleDown(self):
-        print(self.speed,config.normal_speed)
+        #print(self.speed,config.normal_speed)
         if self.speed > config.normal_speed and self.releasing_turbo == False:
             self.speed-= 3*self.slowvalue
 
 
     def update(self,slowvalue):
-
         if self.emp_affected == True:
             self.emp_duration = 1000
             self.emp_affected = False

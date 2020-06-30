@@ -59,6 +59,14 @@ class Game:
         self.initial_explosion = []
         self.clouds = clouds.Clouds()
         self.explosions = []
+        self.camoffs = []
+        for i in range(20):
+            self.camoffs.append([random.randint(-10,10),random.randint(-10,10)])
+
+        self.camoffx = 0
+        self.camoffy = 0
+        self.shake = False
+        self.shakecount = 0
 
         self.screen_r = 0x8c
         self.screen_g = 0xbe
@@ -188,9 +196,17 @@ class Game:
             self.draw_bullets()
 
             if self.player.health > 0:
+                print(self.shakecount,self.camoffx,self.camoffy)
+                [x,y] = [self.player.rect.centerx+self.camoffx,self.player.rect.centery+self.camoffy]
+                self.player.rect.centerx = x
+                self.player.rect.centery  = y
                 self.win.blit(self.player.image, self.player.rect)
 
             self.missiles.draw(self.win)
+
+            for figh in self.fighters:
+                figh.rect.centerx += self.camoffx
+                figh.rect.centery += self.camoffy
             self.fighters.draw(self.win)
 
             for missile in self.missiles.sprites():
@@ -198,7 +214,6 @@ class Game:
                     if (i.size < config.particle_expansion_size):
                         py.draw.circle(self.win, (100, 100, 100), vectors.ret_int(i.renderpos), int(i.size),
                                        int(i.size))
-
                         i.size += .1
             for i in self.player.particle_system.particles:
                 if (i.size < config.particle_expansion_size):
@@ -229,7 +244,7 @@ class Game:
         self.emps.draw(self.win)
 
     def draw_clouds(self):
-        self.clouds.draw(self.win,self.player.pos)
+        self.clouds.draw(self.win,self.player.pos,[self.camoffx,self.camoffy])
 
     def draw_explosions(self):
         expired = []
@@ -325,6 +340,8 @@ class Game:
             col = py.sprite.collide_mask(missile, self.player)
             if col != None:
                 missile.killit = True
+                self.shake = True
+                self.shakecount = 0
                 self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos,self.player.pos)))
                 self.explosions.append(self.get_exp(missile.pos))
                 self.player.health -= 30
@@ -340,6 +357,8 @@ class Game:
             for fighter in self.fighters.sprites():
                 if py.sprite.collide_mask(missile,fighter):
                     missile.killit = True
+                    self.shake = True
+                    self.shakecount = 14
                     self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos,self.player.pos)))
                     self.explosions.append(self.get_exp(missile.pos))
                     fighter.health-= 10
@@ -351,6 +370,8 @@ class Game:
                 if j != None :
                     ship.kill()
                     self.player.health = 0
+                    self.shake=True
+                    self.shakecount = 0
                     j = list(j)
                     self.missiles_exploded.append(0)
                     self.explosions.append(self.get_exp(self.player.pos))
@@ -369,6 +390,8 @@ class Game:
                     if py.sprite.collide_mask(missile, missileB) != None:
                         missile.killit = True
                         missileB.killit = True
+                        self.shake = True
+                        self.shakecount = 14
                         self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos, self.player.pos)))
                         self.explosions.append(self.get_exp(missile.pos))
 
@@ -377,6 +400,8 @@ class Game:
                 b = bulls[j]
                 if py.sprite.collide_mask(b, missile):
                     missile.killit = True
+                    self.shake = True
+                    self.shakecount = 14
                     self.missiles_exploded.append(vectors.norm(vectors.sub_vec(missile.pos,self.player.pos)))
                     self.explosions.append(self.get_exp(missile.pos))
                     hitted_bullets.append(b)
@@ -391,6 +416,9 @@ class Game:
                     self.sparkSystem.add_particles(b.pos,fighter.v,25)
                     if fighter.health <= 0:
                         fighter.killit = True
+                        self.shake = True
+                        self.shakecount = 16
+
                         self.missiles_exploded.append(vectors.norm(vectors.sub_vec(fighter.pos,self.player.pos)))
                         self.explosions.append(self.get_exp(fighter.pos))
 
@@ -462,7 +490,7 @@ class Game:
             self.menu_system.state = "level_finished"
 
     def update(self):
-
+        self.shakescreen()
         if self.menu_system.state == "start" and not self.pressed_escape:
             if not self.game_exists:
                 self.initiate_game()
@@ -581,13 +609,26 @@ class Game:
             self.sounds.mHit()
             self.fighterhit = False
 
+    def shakescreen(self):
+
+        if self.shake and self.shakecount < 19:
+            self.shakecount+=1
+            self.camoffx = self.camoffs[self.shakecount][0]
+            self.camoffy = self.camoffs[self.shakecount][1]
+            #print(self.shakecount,self.camoffx,self.camoffy,random.randint(-20,20))
+
+        else:
+            self.shake = False
+            self.shakecount = 0
+
+
     def run(self):
         self.sounds.playTheme()
         while self.menu_system.state != "quitgame":
             self.event_handler()
             self.update()
             self.draw()
-            self.clock.tick(30)
+            self.clock.tick(40)
 
 if __name__ == '__main__':
     g = Game()
