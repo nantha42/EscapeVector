@@ -8,15 +8,15 @@
     "Ejets": 1
   },
   "Level3": {
-    "fighters": 2,
-    "Ejets": 1
+    "fighters": 0,
+    "Ejets": 2
   },
   "Level4": {
-    "fighters": 2,
-    "Ejets": 2
+    "fighters": 1,
+    "Ejets": 1
   },
   "Level5": {
     "fighters": 2,
-    "Ejets": 3
+    "Ejets": 1
   }
 }

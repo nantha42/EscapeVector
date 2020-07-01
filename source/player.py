@@ -50,12 +50,13 @@ class Player(py.sprite.Sprite,Object):
         self.shoottimer = time.time()
 
     def rot_center(self):
-        if self.speed > 300 and self.speed < 324:
-            ind = int((self.speed - 300) / 3)
-
+        if self.speed > 300 and self.speed < 400:
+            ind = int((self.speed - 300) / 13)
             self.permimage = self.boom_imgs[ind]
             self.permimage = py.transform.scale(self.permimage,(self.width*2,self.height*2))
+            self.turn_speed = 5
         else:
+            self.turn_speed = 3
             if not self.releasing_turbo:
                 if self.damaging:
                     self.permimage = self.damage_image.copy()
@@ -88,7 +89,7 @@ class Player(py.sprite.Sprite,Object):
             self.releasing_turbo = True
             self.turbo-=0.5*self.slowvalue
             if self.speed < config.normal_speed+200:
-                self.speed += 5*self.slowvalue
+                self.speed += 20*self.slowvalue
 
         if self.turbo == 0.0:
             self.releasing_turbo = False
@@ -110,8 +111,11 @@ class Player(py.sprite.Sprite,Object):
         if self.speed < config.normal_speed and not self.releasing_turbo:
             self.speed+=3*self.slowvalue
 
-        elif self.speed > config.normal_speed:
-            self.speed -= 3*self.slowvalue
+        # elif self.speed > config.normal_speed:
+        #     if self.speed > 300:
+        #         self.speed -= 15*self.slowvalue
+        #     else:
+        #         self.speed -= 3*self.slowvalue
 
     def throttleDown(self):
         #print(self.speed,config.normal_speed)

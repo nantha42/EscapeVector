@@ -44,6 +44,7 @@ class Game:
 
         self.minimap = minimap.Minimap()
         self.missiles_exploded = []
+        self.close_time = 0
         self.fighters = py.sprite.Group()
         self.missiles = py.sprite.Group()
         self.emps = py.sprite.Group()
@@ -133,6 +134,10 @@ class Game:
                 if event.key == py.K_j:
                     self.slowtime = True
 
+                if event.key == py.K_k:
+                    for fi in self.fighters.sprites():
+                        fi.killit = True
+
                 if event.key == py.K_ESCAPE:
                     self.pressed_escape = True
                     # print("Escape")
@@ -181,7 +186,6 @@ class Game:
                     self.screen_r+=color_change_perstep
                     self.screen_b-=color_change_perstep
                     self.screen_g-=color_change_perstep
-
                 else:
                     self.turn_screen_normal = True
 
@@ -196,7 +200,6 @@ class Game:
             self.draw_bullets()
 
             if self.player.health > 0:
-                print(self.shakecount,self.camoffx,self.camoffy)
                 [x,y] = [self.player.rect.centerx+self.camoffx,self.player.rect.centery+self.camoffy]
                 self.player.rect.centerx = x
                 self.player.rect.centery  = y
@@ -334,7 +337,11 @@ class Game:
         py.draw.rect(self.win, (255, 255, 30), py.Rect((x, y + (80 - h), w, h)), 0)
 
     def detect_collisions(self):
+
         for missile in self.missiles.sprites():
+            if(self.player.health<=0):
+                missile.killit = True
+                continue
             if not missile.activated:
                 continue
             col = py.sprite.collide_mask(missile, self.player)
@@ -444,6 +451,7 @@ class Game:
                 self.player.emp_affected = True
                 emp.kill()
 
+
     def draw_bullets(self):
         w = config.screen_width / 2
         h = config.screen_height / 2
@@ -484,9 +492,21 @@ class Game:
             self.player.stop_turb()
 
     def check_level_completed(self):
-        if len(self.missiles.sprites())==0 and len(self.fighters.sprites())==0 and len(self.emps.sprites())==0 and len(self.enemiesbullets.bullets.sprites())==0 and len(self.explosions)==0:
+
+        if self.player.health> 0 and len(self.missiles.sprites())==0 and len(self.fighters.sprites())==0 and len(self.emps.sprites())==0 and len(self.enemiesbullets.bullets.sprites())==0 and len(self.explosions)==0:
+
             if self.menu_system.database.levelunlocked == self.menu_system.level_selected:
                 self.menu_system.database.update_level()
+            self.menu_system.state = "level_finished"
+
+
+        if self.player.health <= 0 and self.close_time == 0:
+            self.close_time = 100
+
+        if(self.close_time > 0):
+            self.close_time -= 1
+
+        if self.player.health<= 0 and self.close_time == 1:
             self.menu_system.state = "level_finished"
 
     def update(self):
